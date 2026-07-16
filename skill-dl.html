@@ -29,18 +29,34 @@ footer{text-align:center;padding:28px 24px;border-top:1px solid var(--border);co
 <div class="lv">熟练度: 72%</div>
 <div class="bar"><div class="f"></div></div>
 <h2 style="font-size:16px;font-weight:600;margin-bottom:6px">代码示例</h2>
-<pre><code>import torch.nn as nn
-class SimpleCNN(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.conv1 = nn.Conv2d(3, 16, 3)
-        self.fc = nn.Linear(16*30*30, 10)
-    def forward(self, x):
-        x = torch.relu(self.conv1(x))
-        return self.fc(x.view(x.size(0), -1))
+<pre><code>import torch
+import torch.nn as nn
+import torch.optim as optim
 
-model = SimpleCNN()
-print(f"Params: {sum(p.numel() for p in model.parameters())}")</code></pre>
+class LSTMRegressor(nn.Module):
+    def __init__(self, input_dim=10, hidden_dim=64):
+        super().__init__()
+        self.lstm = nn.LSTM(input_dim, hidden_dim, batch_first=True)
+        self.fc = nn.Linear(hidden_dim, 1)
+    def forward(self, x):
+        out, _ = self.lstm(x)
+        return self.fc(out[:, -1, :])
+
+model = LSTMRegressor()
+criterion = nn.MSELoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+for epoch in range(50):
+    pred = model(X_train)
+    loss = criterion(pred, y_train)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+    if epoch % 10 == 0:
+        print(f"Epoch {epoch}, Loss: {loss.item():.4f}")
+
+print(f"Total params: {sum(p.numel() for p in model.parameters())}")
+</code></pre>
 </div>
 <footer>&copy; 2026 DataSphere</footer>
 

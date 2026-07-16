@@ -30,11 +30,24 @@ footer{text-align:center;padding:28px 24px;border-top:1px solid var(--border);co
 <div class="bar"><div class="f"></div></div>
 <h2 style="font-size:16px;font-weight:600;margin-bottom:6px">代码示例</h2>
 <pre><code>from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.window import Window
 
-spark = SparkSession.builder.appName("App").getOrCreate()
+spark = SparkSession.builder.appName("Analysis").getOrCreate()
 df = spark.read.parquet("events/*.parquet")
-result = df.groupBy("category").agg(count("*").alias("events"))
-result.show()</code></pre>
+
+# 窗口排名
+w = Window.partitionBy("category").orderBy(col("count").desc())
+
+result = df.groupBy("category", "date") \
+    .agg(count("*").alias("events")) \
+    .withColumn("rank", row_number().over(w)) \
+    .filter(col("rank") <= 3) \
+    .orderBy("category", "rank")
+
+result.show(20)
+result.write.mode("overwrite").parquet("output/top_events")
+</code></pre>
 </div>
 <footer>&copy; 2026 DataSphere</footer>
 

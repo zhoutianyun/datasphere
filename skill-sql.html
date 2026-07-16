@@ -29,15 +29,26 @@ footer{text-align:center;padding:28px 24px;border-top:1px solid var(--border);co
 <div class="lv">熟练度: 85%</div>
 <div class="bar"><div class="f"></div></div>
 <h2 style="font-size:16px;font-weight:600;margin-bottom:6px">代码示例</h2>
-<pre><code>-- 用户行为分析
-SELECT 
-  DATE(created_at) as day,
-  COUNT(DISTINCT user_id) as dau
-FROM user_events
-WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-GROUP BY DATE(created_at)
-ORDER BY day DESC
-LIMIT 10;</code></pre>
+<pre><code>-- 用户分层分析
+WITH user_stats AS (
+  SELECT user_id,
+         COUNT(*) AS sessions,
+         SUM(duration) AS total_time,
+         AVG(duration) AS avg_session
+  FROM sessions
+  WHERE date >= '2024-01-01'
+  GROUP BY user_id
+)
+SELECT
+  CASE WHEN sessions > 50 THEN '重度用户'
+       WHEN sessions > 10 THEN '中度用户'
+       ELSE '轻度用户' END AS user_type,
+  COUNT(*) AS user_count,
+  ROUND(AVG(total_time), 2) AS avg_total_time
+FROM user_stats
+GROUP BY user_type
+ORDER BY user_count DESC;
+</code></pre>
 </div>
 <footer>&copy; 2026 DataSphere</footer>
 

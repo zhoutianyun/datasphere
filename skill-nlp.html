@@ -30,10 +30,25 @@ footer{text-align:center;padding:28px 24px;border-top:1px solid var(--border);co
 <div class="bar"><div class="f"></div></div>
 <h2 style="font-size:16px;font-weight:600;margin-bottom:6px">代码示例</h2>
 <pre><code>from transformers import pipeline
-classifier = pipeline("sentiment-analysis", model="bert-base-chinese")
-result = classifier("这个产品非常好用！")
-print(f"情感: {result[0]['label']}")  
-print(f"置信度: {result[0]['score']:.4f}")</code></pre>
+import jieba
+
+# 中文情感分析
+classifier = pipeline("sentiment-analysis",
+                       model="bert-base-chinese")
+
+texts = ["这个产品非常好用，强烈推荐！",
+         "质量太差了，用一次就坏",
+         "中规中矩，没什么特别"]
+
+for t in texts:
+    r = classifier(t)[0]
+    print(f"文本: {t}")
+    print(f"  情感: {r['label']}, 置信度: {r['score']:.4f}")
+
+# 分词
+words = jieba.lcut("数据分析是未来最重要的技能之一")
+print("分词:", "/".join(words))
+</code></pre>
 </div>
 <footer>&copy; 2026 DataSphere</footer>
 

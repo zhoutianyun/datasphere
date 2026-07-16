@@ -29,15 +29,24 @@ footer{text-align:center;padding:28px 24px;border-top:1px solid var(--border);co
 <div class="lv">熟练度: 82%</div>
 <div class="bar"><div class="f"></div></div>
 <h2 style="font-size:16px;font-weight:600;margin-bottom:6px">代码示例</h2>
-<pre><code>import scipy.stats as stats
-import numpy as np
+<pre><code>import numpy as np
+import scipy.stats as stats
 
-ctrl = np.random.normal(100, 15, 1000)
-test = np.random.normal(105, 15, 1000)
-t_stat, p = stats.ttest_ind(test, ctrl)
-print(f"T: {t_stat:.4f}")
-print(f"P: {p:.6f}
-Significant: {p < 0.05}")</code></pre>
+np.random.seed(42)
+ctrl = np.random.binomial(1, 0.10, 5000)
+test = np.random.binomial(1, 0.12, 5000)
+
+print(f"Control CR: {ctrl.mean():.4f}")
+print(f"Test CR: {test.mean():.4f}")
+print(f"Lift: {(test.mean()-ctrl.mean())/ctrl.mean()*100:.2f}%")
+
+# 卡方检验
+tbl = [[(ctrl==0).sum(), (ctrl==1).sum()],
+       [(test==0).sum(), (test==1).sum()]]
+chi2, p, _, _ = stats.chi2_contingency(tbl)
+print(f"Chi2: {chi2:.4f}, p: {p:.6f}")
+print("Significant" if p < 0.05 else "Not significant")
+</code></pre>
 </div>
 <footer>&copy; 2026 DataSphere</footer>
 

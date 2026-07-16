@@ -29,12 +29,34 @@ footer{text-align:center;padding:28px 24px;border-top:1px solid var(--border);co
 <div class="lv">熟练度: 80%</div>
 <div class="bar"><div class="f"></div></div>
 <h2 style="font-size:16px;font-weight:600;margin-bottom:6px">代码示例</h2>
-<pre><code>from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_score
+<pre><code>from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+import pandas as pd
 
-rf = RandomForestClassifier(n_estimators=200, max_depth=10, random_state=42)
-scores = cross_val_score(rf, X, y, cv=5, scoring="f1")
-print(f"F1: {scores.mean():.3f} (+/- {scores.std():.3f})")</code></pre>
+df = pd.read_csv("data.csv")
+X = df.drop("target", axis=1)
+y = df["target"]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42)
+
+model = RandomForestClassifier(
+    n_estimators=200, max_depth=10, random_state=42)
+
+# 交叉验证
+scores = cross_val_score(model, X_train, y_train, cv=5)
+print(f"CV F1: {scores.mean():.3f} (+/- {scores.std():.3f})")
+
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+print(classification_report(y_test, y_pred))
+
+# 特征重要性
+fi = pd.DataFrame({"feature": X.columns,
+                    "importance": model.feature_importances_})
+print(fi.sort_values("importance", ascending=False).head(5))
+</code></pre>
 </div>
 <footer>&copy; 2026 DataSphere</footer>
 

@@ -29,15 +29,23 @@ footer{text-align:center;padding:28px 24px;border-top:1px solid var(--border);co
 <div class="lv">熟练度: 78%</div>
 <div class="bar"><div class="f"></div></div>
 <h2 style="font-size:16px;font-weight:600;margin-bottom:6px">代码示例</h2>
-<pre><code># Git
-$ git checkout -b feature/new-model
-$ git add .
-$ git commit -m "feat: add model"
-$ git push origin feature/new-model
+<pre><code># Git 协作流程
+git checkout -b feature/data-pipeline
+git add src/ tests/
+git commit -m "feat: add data pipeline with validation"
+git push origin feature/data-pipeline
 
-# Docker
-$ docker build -t ml-service .
-$ docker run -d -p 5000:5000 ml-service</code></pre>
+# Docker 构建与部署
+docker build -t ml-api:latest .
+docker run -d --name ml-api -p 5000:5000 ml-api:latest
+
+# docker-compose 多服务编排
+docker-compose up -d
+docker-compose logs -f api
+
+# 模型监控
+watch -n 5 curl -s http://localhost:5000/health
+</code></pre>
 </div>
 <footer>&copy; 2026 DataSphere</footer>
 

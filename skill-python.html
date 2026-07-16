@@ -29,18 +29,38 @@ footer{text-align:center;padding:28px 24px;border-top:1px solid var(--border);co
 <div class="lv">熟练度: 92%</div>
 <div class="bar"><div class="f"></div></div>
 <h2 style="font-size:16px;font-weight:600;margin-bottom:6px">代码示例</h2>
-<pre><code>print("Hello Data Science!")
-
-import pandas as pd
+<pre><code>import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
-df = pd.read_csv("data.csv")
-print(df.describe())
+# 加载与预览
+df = pd.read_csv("sales.csv")
+print("Shape:", df.shape)
+print(df.head())
 
+# 清洗与特征工程
+df.dropna(inplace=True)
+df["date"] = pd.to_datetime(df["date"])
+df["month"] = df["date"].dt.month
+df["revenue"] = df["price"] * df["qty"]
+
+# 分组聚合
+monthly = df.groupby("month")["revenue"].sum()
+print(monthly)
+
+# 可视化趋势
+plt.figure(figsize=(10, 4))
+plt.plot(df["date"], df["revenue"])
+plt.title("Revenue Trend")
+plt.show()
+
+# 线性回归建模
 from sklearn.linear_model import LinearRegression
-model = LinearRegression()
-model.fit(X_train, y_train)
-print(f"R2 Score: {model.score(X_test, y_test):.4f}")</code></pre>
+X = df[["month", "price"]]
+y = df["revenue"]
+model = LinearRegression().fit(X, y)
+print(f"R2 Score: {model.score(X, y):.3f}")
+</code></pre>
 </div>
 <footer>&copy; 2026 DataSphere</footer>
 
