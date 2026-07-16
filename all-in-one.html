@@ -1,140 +1,810 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>周添运 · 数据科学主页</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0b0d14;color:#e2e6f0;line-height:1.7}
-a{color:#5b8def;text-decoration:none}
-.wrap{max-width:1000px;margin:0 auto;padding:60px 24px}
-h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.15;margin-bottom:12px}
-.sub{font-size:1.1rem;color:#868ca0;max-width:540px;line-height:1.8;margin-bottom:24px}
-.btn{display:inline-block;padding:10px 24px;border-radius:8px;background:#5b8def;color:#fff;font-size:14px;font-weight:500}
-.sh{font-size:14px;color:#5b8def;font-weight:500;margin-bottom:6px}
-h2{font-size:clamp(1.3rem,2.5vw,1.8rem);margin-bottom:24px}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:40px}
-.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.g2-2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.card{background:#131620;border:1px solid #262b3a;border-radius:8px;padding:16px;cursor:pointer;transition:border-color .3s;position:relative}
-.card:hover{border-color:#5b8def}
-.card .ic{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;font-size:18px}
-.card h3{font-size:14px;font-weight:600;margin-bottom:2px}
-.card p{font-size:12px;color:#868ca0}
-.pc{background:#131620;border:1px solid #262b3a;border-radius:8px;overflow:hidden;cursor:pointer;transition:border-color .3s;position:relative}
-.pc:hover{border-color:#5b8def}
-.pc .pt{height:120px;display:flex;align-items:center;justify-content:center;font-size:32px}
-.pc .pb{padding:14px}
-.pc .pb .tg{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;background:rgba(91,141,239,.1);color:#5b8def;border:1px solid rgba(91,141,239,.15);margin:0 3px 3px 0}
-.pc .pb h3{font-size:14px;font-weight:600;margin:3px 0 2px}
-.pc .pb p{font-size:12px;color:#868ca0}
-.dp{display:none;background:#0b0d14;border:1px solid #262b3a;border-radius:8px;padding:16px;margin-top:8px;animation:fi .3s}
-.dp.sh{display:block}
-.dp pre{background:#0b0d14;margin:0;font-size:12px;line-height:1.5;overflow-x:auto;color:#e2e6f0}
-.dp h4{font-size:14px;font-weight:600;color:#5b8def;margin-bottom:6px}
-.dp p{color:#868ca0;font-size:13px;line-height:1.8;margin-bottom:8px}
-.dp .tg{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
-.dp .tg span{font-size:11px;padding:2px 10px;border-radius:6px;background:rgba(91,141,239,.1);color:#5b8def;border:1px solid rgba(91,141,239,.15)}
-.dp .cl{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:6px;background:rgba(61,214,140,.1);border:1px solid rgba(61,214,140,.2);color:#3dd68c;font-size:12px;font-weight:500;margin-top:8px}
-.st-card{background:#131620;border:1px solid #262b3a;border-radius:8px;padding:14px;text-align:center}
-.st-card .n{font-size:26px;font-weight:700;font-family:ui-monospace,monospace;background:linear-gradient(135deg,#5b8def,#3dd68c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.st-card .l{font-size:13px;color:#868ca0;margin-top:2px}
-.tl{position:relative;padding-left:28px}
-.tl::before{content:"";position:absolute;left:9px;top:4px;bottom:4px;width:2px;background:#262b3a}
-.tl-i{position:relative;margin-bottom:28px}
-.tl-i .dt{font-family:ui-monospace,monospace;font-size:12px;color:#5b8def;margin-bottom:2px}
-.tl-i h3{font-size:15px;font-weight:600}
-.tl-i .mt{font-size:13px;color:#868ca0;margin-bottom:4px}
-.tl-i p{font-size:13px;color:#868ca0}
-footer{text-align:center;padding:30px;border-top:1px solid #262b3a;color:#868ca0;font-size:13px;margin-top:40px}
-@media(max-width:768px){.g2,.g2-2{grid-template-columns:1fr}.g3{grid-template-columns:1fr 1fr}}
-@media(max-width:480px){.g3{grid-template-columns:1fr}}
-@keyframes fi{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+ <!DOCTYPE html>
+ <html lang="zh-CN">
+ <head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>数据科学与大数据技术 · 个人主页</title>
+ <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+ <style>
+ *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+ :root{
+   --bg: #0b0d14;
+   --bg-card: #131620;
+   --bg-elevated: #1a1e2b;
+   --border: #262b3a;
+   --text: #e2e6f0;
+   --text-dim: #868ca0;
+   --accent: #5b8def;
+   --accent-dim: #3a6bc4;
+   --green: #3dd68c;
+   --orange: #f5a623;
+   --purple: #a78bfa;
+   --radius: 8px;
+   --max-w: 1100px;
+ }
+ html{scroll-behavior:smooth}
+ body{
+   font-family:Inter,system-ui,-apple-system,sans-serif;
+   background:var(--bg);
+   color:var(--text);
+   line-height:1.7;
+   -webkit-font-smoothing:antialiased;
+   overflow-x:hidden;
+ }
+ a{color:var(--accent);text-decoration:none}
+ a:hover{color:#8aafff}
+ img{max-width:100%}
+ nav{
+   position:fixed;top:0;left:0;right:0;z-index:50;
+   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+   background:rgba(11,13,20,.72);
+   border-bottom:1px solid var(--border);
+   height:60px;
+   display:flex;align-items:center;justify-content:center;
+ }
+ nav .inner{
+   width:100%;max-width:var(--max-w);padding:0 24px;
+   display:flex;align-items:center;justify-content:space-between;
+ }
+ nav .logo{
+   font-weight:600;font-size:16px;letter-spacing:-.01em;
+   display:flex;align-items:center;gap:8px;
+ }
+ nav .logo span{color:var(--accent)}
+ nav .links{display:flex;gap:28px}
+ nav .links a{
+   font-size:14px;font-weight:500;color:var(--text-dim);
+   transition:color .2s;
+ }
+ nav .links a:hover{color:var(--text)}
+ #hero-canvas{
+   position:fixed;top:0;left:0;width:100vw;height:100vh;
+   z-index:0;pointer-events:none;
+ }
+ .hero-overlay{
+   position:fixed;top:0;left:0;width:100vw;height:100vh;
+   z-index:1;pointer-events:none;
+   background:radial-gradient(ellipse at 50% 30%, transparent 40%, rgba(11,13,20,.7) 90%);
+ }
+ section{
+   position:relative;z-index:2;
+   max-width:var(--max-w);margin:0 auto;padding:100px 24px;
+ }
+ section:first-of-type{padding-top:0}
+ .hero-section{
+   min-height:100vh;display:flex;align-items:center;
+   padding:120px 24px 80px;
+ }
+ .hero-content{
+   position:relative;z-index:3;
+   max-width:800px;
+ }
+ .hero-content .tag{
+   display:inline-block;font-size:13px;font-weight:500;
+   color:var(--accent);letter-spacing:.06em;text-transform:uppercase;
+   margin-bottom:16px;background:rgba(91,141,239,.1);
+   padding:4px 14px;border-radius:20px;border:1px solid rgba(91,141,239,.2);
+ }
+ .hero-content h1{
+   font-size:clamp(2.5rem,6vw,4.2rem);font-weight:700;
+   line-height:1.1;letter-spacing:-.03em;margin-bottom:20px;
+ }
+ .hero-content h1 .highlight{background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+ .hero-content p{
+   font-size:clamp(1rem,2vw,1.2rem);color:var(--text-dim);
+   max-width:580px;line-height:1.8;margin-bottom:36px;
+ }
+ .hero-actions{display:flex;gap:14px;flex-wrap:wrap}
+ .hero-actions .btn{
+   padding:12px 28px;border-radius:var(--radius);font-size:15px;font-weight:500;
+   transition:all .2s;cursor:pointer;border:none;
+ }
+ .btn-primary{background:var(--accent);color:#fff}
+ .btn-primary:hover{background:var(--accent-dim);transform:translateY(-1px)}
+ .btn-ghost{border:1px solid var(--border);color:var(--text);background:transparent}
+ .btn-ghost:hover{border-color:var(--text-dim);background:var(--bg-elevated)}
+ .scroll-hint{
+   position:absolute;bottom:40px;left:24px;z-index:3;
+   display:flex;align-items:center;gap:10px;
+   color:var(--text-dim);font-size:13px;
+   animation:float 2.4s ease-in-out infinite;
+ }
+ @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+ .section-header{margin-bottom:48px}
+ .section-header .num{
+   font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;
+   color:var(--accent);margin-bottom:6px;
+ }
+ .section-header h2{
+   font-size:clamp(1.5rem,3vw,2.2rem);font-weight:600;letter-spacing:-.02em;
+ }
+ .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+ .about-text p{color:var(--text-dim);margin-bottom:16px;font-size:15px}
+ .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+ .stat-card{
+   background:var(--bg-card);border:1px solid var(--border);
+   border-radius:var(--radius);padding:20px;text-align:center;
+ }
+ .stat-card .num{
+   font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;
+   background:linear-gradient(135deg,var(--accent),var(--green));
+   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+ }
+ .stat-card .label{font-size:13px;color:var(--text-dim);margin-top:4px}
+ .skills-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+ .skill-card{
+   background:var(--bg-card);border:1px solid var(--border);
+   border-radius:var(--radius);padding:20px;
+   transition:border-color .25s;
+ }
+ .skill-card:hover{border-color:var(--accent)}
+ .skill-card .icon-wrap{
+   width:40px;height:40px;border-radius:8px;
+   display:flex;align-items:center;justify-content:center;
+   margin-bottom:12px;font-size:20px;
+ }
+ .skill-card h3{font-size:15px;font-weight:600;margin-bottom:4px}
+ .skill-card p{font-size:13px;color:var(--text-dim)}
+ .skill-bar{height:4px;background:var(--border);border-radius:2px;margin-top:12px}
+ .skill-bar .fill{
+   height:100%;border-radius:2px;width:0;
+   transition:width 1s ease;
+ }
+ .projects-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+ .project-card{
+   background:var(--bg-card);border:1px solid var(--border);
+   border-radius:var(--radius);overflow:hidden;
+   transition:border-color .25s,transform .2s;
+ }
+ .project-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+ .project-card .thumb{
+   height:180px;display:flex;align-items:center;justify-content:center;
+   font-size:48px;position:relative;overflow:hidden;
+ }
+ .project-card .body{padding:20px}
+ .project-card .body .tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+ .project-card .body .tags span{
+   font-size:11px;padding:2px 10px;border-radius:12px;
+   background:rgba(91,141,239,.1);color:var(--accent);border:1px solid rgba(91,141,239,.15);
+ }
+ .project-card .body h3{font-size:16px;font-weight:600;margin-bottom:6px}
+ .project-card .body p{font-size:13px;color:var(--text-dim);line-height:1.7}
+ .timeline{position:relative;padding-left:32px}
+ .timeline::before{
+   content:'';position:absolute;left:11px;top:4px;bottom:4px;
+   width:2px;background:var(--border);
+ }
+ .timeline-item{position:relative;margin-bottom:36px}
+ .timeline-item:last-child{margin-bottom:0}
+ .timeline-item .dot{
+   position:absolute;left:-32px;top:6px;
+   width:14px;height:14px;border-radius:50%;
+   background:var(--accent);border:3px solid var(--bg);
+ }
+ .timeline-item .date{
+   font-family:'JetBrains Mono',monospace;font-size:13px;
+   color:var(--accent);margin-bottom:4px;
+ }
+ .timeline-item h3{font-size:16px;font-weight:600}
+ .timeline-item .meta{font-size:14px;color:var(--text-dim);margin-bottom:6px}
+ .timeline-item p{font-size:14px;color:var(--text-dim);line-height:1.7}
+ .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+ .contact-info p{color:var(--text-dim);margin-bottom:24px}
+ .contact-links{display:flex;flex-direction:column;gap:12px}
+ .contact-link{
+   display:flex;align-items:center;gap:12px;
+   padding:14px 18px;border-radius:var(--radius);
+   background:var(--bg-card);border:1px solid var(--border);
+   color:var(--text);font-size:14px;
+   transition:border-color .2s;
+ }
+ .contact-link:hover{border-color:var(--accent);color:var(--text)}
+ .contact-form{display:flex;flex-direction:column;gap:14px}
+ .contact-form input,.contact-form textarea{
+   background:var(--bg-card);border:1px solid var(--border);
+   border-radius:var(--radius);padding:12px 16px;
+   color:var(--text);font-family:Inter,sans-serif;font-size:14px;
+   outline:none;transition:border-color .2s;
+ }
+ .contact-form input:focus,.contact-form textarea:focus{border-color:var(--accent)}
+ .contact-form textarea{height:120px;resize:vertical}
+ .contact-form button{
+   padding:12px 24px;border-radius:var(--radius);
+   background:var(--accent);color:#fff;border:none;
+   font-size:15px;font-weight:500;cursor:pointer;
+   transition:background .2s;
+   align-self:flex-start;
+ }
+ .contact-form button:hover{background:var(--accent-dim)}
+ footer{
+   position:relative;z-index:2;text-align:center;
+   padding:40px 24px;border-top:1px solid var(--border);
+   color:var(--text-dim);font-size:13px;
+ }
+ @media(max-width:768px){
+   nav .links{display:none}
+   .hero-section{padding:100px 20px 60px}
+   .about-grid,.contact-grid{grid-template-columns:1fr}
+   .skills-grid{grid-template-columns:1fr 1fr}
+   .projects-grid{grid-template-columns:1fr}
+   .stats-grid{grid-template-columns:1fr 1fr}
+ }
+ @media(max-width:480px){
+   .skills-grid{grid-template-columns:1fr}
+   section{padding:60px 16px}
+ }
+ 
+.detail-panel{display:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:8px;font-size:13px;line-height:1.6;overflow-x:auto;animation:fadeIn .3s ease}
+.detail-panel code{font-family:ui-monospace,"SF Mono",Consolas,monospace;white-space:pre;font-size:12px;color:var(--text)}
+.detail-panel h4{font-size:14px;font-weight:600;color:var(--accent);margin-bottom:6px}
+.detail-panel p{color:var(--dim);margin-bottom:8px}
+.detail-panel .tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.detail-panel .tags span{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(91,141,239,.1);color:var(--accent);border:1px solid rgba(91,141,239,.15)}
+.detail-panel .code-link{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:6px;background:rgba(61,214,140,.1);border:1px solid rgba(61,214,140,.2);color:var(--green);font-size:12px;font-weight:500;margin-top:8px;text-decoration:none}
+.skill-card{cursor:pointer;transition:border-color .3s;position:relative}
+.skill-card:hover{border-color:var(--accent)}
+.project-card{cursor:pointer;transition:border-color .3s;position:relative}
+.project-card:hover{border-color:var(--accent)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+
 </style>
-</head>
-<body>
-
-<div class="wrap" style="min-height:100vh;display:flex;align-items:center">
-<div style="max-width:700px"><div style="display:inline-block;font-size:13px;font-weight:500;color:#5b8def;background:rgba(91,141,239,.1);padding:4px 14px;border-radius:20px;border:1px solid rgba(91,141,239,.2);margin-bottom:12px">数据科学与大数据技术</div>
-<h1>你好，我是 <span style="color:#5b8def">周添运</span><br>用数据 <span style="color:#5b8def">洞察世界</span></h1>
-<p class="sub">数据科学与大数据技术专业，热衷从数据中挖掘价值。</p>
-<div><a href="#skills" class="btn">查看技能</a></div></div></div>
-
-<div class="wrap">
-<div class="sh">/ 01</div><h2>关于我</h2>
-<div class="g2"><div><p style="color:#868ca0;margin-bottom:14px">数据科学与大数据技术专业在读，熟悉数据采集、清洗、分析、建模到可视化全流程。</p>
-<p style="color:#868ca0">多次参与数据竞赛并获奖，相信数据是新时代的石油。</p></div>
-<div class="g2-2">
-<div class="st-card"><div class="n">20+</div><div class="l">项目完成</div></div>
-<div class="st-card"><div class="n">5</div><div class="l">竞赛获奖</div></div>
-<div class="st-card"><div class="n">10K+</div><div class="l">代码提交</div></div>
-<div class="st-card"><div class="n">2</div><div class="l">学术论文</div></div>
-</div></div></div>
-
-<div class="wrap"><div class="sh">/ 02</div><h2>技能</h2>
-<div class="g3" id="skillsGrid"></div></div>
-
-<div class="wrap"><div class="sh">/ 03</div><h2>项目</h2>
-<div class="g2-2" style="grid-template-columns:repeat(2,1fr)" id="projectsGrid"></div></div>
-
-<div class="wrap"><div class="sh">/ 04</div><h2>教育 &amp; 经历</h2>
-<div class="tl"><div class="tl-i"><div class="dt">2023 — 至今</div><h3>数据科学与大数据技术 · 本科</h3><div class="mt">计算机与数据科学学院</div><p>主修课程：数据结构、数据库、机器学习、数据挖掘等。</p></div>
-<div class="tl-i"><div class="dt">2025 暑期</div><h3>数据科学实习生</h3><div class="mt">数据平台部</div><p>ETL 清洗与特征工程，参与 A/B 实验分析。</p></div>
-<div class="tl-i"><div class="dt">2024 — 2025</div><h3>Kaggle 竞赛 &amp; 开源贡献</h3><div class="mt">数据科学竞赛平台</div><p>获得 2 枚银牌、1 枚铜牌。</p></div></div></div>
-
-<footer>&copy; 2026 周添运</footer>
-
+ </head>
+ <body>
+ <nav>
+   <div class="inner">
+     <div class="logo">&#9670; <span>Data</span>Sphere</div>
+     <div class="links">
+       <a href="#about">关于</a>
+       <a href="#skills">技能</a>
+       <a href="#projects">项目</a>
+       <a href="#education">经历</a>
+       <a href="#contact">联系</a>
+     </div>
+   </div>
+ </nav>
+ <canvas id="hero-canvas"></canvas>
+ <div class="hero-overlay"></div>
+ <section class="hero-section" id="hero">
+   <div class="hero-content">
+     <div class="tag">数据科学与大数据技术</div>
+     <h1>用数据 <span class="highlight">洞察世界</span>，<br>用技术 <span class="highlight">驱动未来</span></h1>
+     <p>
+       你好！我是一名数据科学专业的学生，热衷于从海量数据中挖掘价值，
+       用统计建模、机器学习和可视化讲出数据背后的故事。
+     </p>
+     <div class="hero-actions">
+       <a href="#projects" class="btn btn-primary">查看项目</a>
+       <a href="#contact" class="btn btn-ghost">联系我</a>
+     </div>
+   </div>
+   <div class="scroll-hint">&#8595; 向下滚动</div>
+ </section>
+ <section id="about">
+   <div class="section-header">
+     <div class="num">/ 01</div>
+     <h2>关于我</h2>
+   </div>
+   <div class="about-grid">
+     <div class="about-text">
+       <p>
+         数据科学与大数据技术专业在读，具备扎实的数学、统计学和计算机科学基础。
+         熟悉数据采集、清洗、分析、建模到可视化的全流程，擅长用 Python 生态工具链解决实际问题。
+       </p>
+       <p>
+         曾在多项数据竞赛中获奖，在校参与科研项目，研究方向包括时序预测、推荐系统与自然语言处理。
+         相信数据是新时代的石油，而优秀的分析师就是炼油师。
+       </p>
+     </div>
+     <div class="stats-grid">
+       <div class="stat-card"><div class="num">28+</div><div class="label">项目完成</div></div>
+       <div class="stat-card"><div class="num">6</div><div class="label">竞赛获奖</div></div>
+       <div class="stat-card"><div class="num">15K+</div><div class="label">代码提交</div></div>
+       <div class="stat-card"><div class="num">3</div><div class="label">学术论文</div></div>
+     </div>
+   </div>
+ </section>
+ <section id="skills">
+   <div class="section-header">
+     <div class="num">/ 02</div>
+     <h2>技术栈</h2>
+   </div>
+   <div class="skills-grid" id="skills-grid"></div>
+ </section>
+ <section id="projects">
+   <div class="section-header">
+     <div class="num">/ 03</div>
+     <h2>项目</h2>
+   </div>
+   <div class="projects-grid" id="projects-grid"></div>
+ </section>
+ <section id="education">
+   <div class="section-header">
+     <div class="num">/ 04</div>
+     <h2>教育 &amp; 经历</h2>
+   </div>
+   <div class="timeline">
+     <div class="timeline-item">
+       <div class="dot"></div>
+       <div class="date">2023 &mdash; 至今</div>
+       <h3>数据科学与大数据技术 · 本科</h3>
+       <div class="meta">某大学 · 计算机与数据科学学院</div>
+       <p>主修课程：数据结构与算法、数据库原理、概率论与数理统计、机器学习、数据挖掘、分布式计算、自然语言处理。</p>
+     </div>
+     <div class="timeline-item">
+       <div class="dot"></div>
+       <div class="date">2025 暑期</div>
+       <h3>数据科学实习生</h3>
+       <div class="meta">某科技公司 · 数据平台部</div>
+       <p>负责用户行为数据的 ETL 清洗与特征工程，搭建自动化报表看板，参与 CTR 预估模型的 A/B 实验分析。</p>
+     </div>
+     <div class="timeline-item">
+       <div class="dot"></div>
+       <div class="date">2024 &mdash; 2025</div>
+       <h3>Kaggle 竞赛 &amp; 开源贡献</h3>
+       <div class="meta">数据科学竞赛平台</div>
+       <p>获得 2 枚银牌、1 枚铜牌；为 Pandas、Matplotlib 等开源项目提交文档翻译与 bug fix。</p>
+     </div>
+   </div>
+ </section>
+ <section id="contact">
+   <div class="section-header">
+     <div class="num">/ 05</div>
+     <h2>联系我</h2>
+   </div>
+   <div class="contact-grid">
+     <div class="contact-info">
+       <p>如果你有数据相关的合作、项目或交流想法，欢迎随时联系。</p>
+       <div class="contact-links">
+         <a href="mailto:hello@datasphere.dev" class="contact-link">
+           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+           hello@datasphere.dev
+         </a>
+         <a href="#" class="contact-link">
+           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+           GitHub
+         </a>
+         <a href="#" class="contact-link">
+           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+           @datasphere_dev
+         </a>
+       </div>
+     </div>
+     <form class="contact-form" onsubmit="event.preventDefault();alert('感谢留言！(演示版本)');return false">
+       <input type="text" placeholder="姓名" required>
+       <input type="email" placeholder="邮箱" required>
+       <textarea placeholder="你的消息..." required></textarea>
+       <button type="submit">发送消息</button>
+     </form>
+   </div>
+ </section>
+ <footer>
+   &copy; 2026 DataSphere. Built with curiosity for data.
+ </footer>
+ <script>
+ var canvas = document.getElementById('hero-canvas');
+ var ctx = canvas.getContext('2d');
+ var W,H;
+ function resize(){
+   W=canvas.width=window.innerWidth;
+   H=canvas.height=window.innerHeight;
+ }
+ resize(); window.addEventListener('resize',resize);
+ var PARTICLE_COUNT = 120;
+ var CONN_DIST = 140;
+ function Particle(){
+   this.reset = function(){
+     this.x = Math.random()*W;
+     this.y = Math.random()*H;
+     this.vx = (Math.random()-0.5)*0.5;
+     this.vy = (Math.random()-0.5)*0.5;
+   };
+   this.reset();
+   this.update = function(){
+     this.x+=this.vx;this.y+=this.vy;
+     if(this.x<0||this.x>W){this.vx*=-1;this.x=Math.max(0,Math.min(this.x,W))}
+     if(this.y<0||this.y>H){this.vy*=-1;this.y=Math.max(0,Math.min(this.y,H))}
+   };
+ }
+ var particles = [];
+ for(var i=0;i<PARTICLE_COUNT;i++) particles.push(new Particle());
+ function draw(){
+   ctx.clearRect(0,0,W,H);
+   for(var i=0;i<particles.length;i++){
+     for(var j=i+1;j<particles.length;j++){
+       var dx=particles[i].x-particles[j].x;
+       var dy=particles[i].y-particles[j].y;
+       var dist=dx*dx+dy*dy;
+       if(dist<CONN_DIST*CONN_DIST){
+         var alpha=1-dist/(CONN_DIST*CONN_DIST);
+         ctx.beginPath();
+         ctx.moveTo(particles[i].x,particles[i].y);
+         ctx.lineTo(particles[j].x,particles[j].y);
+         ctx.strokeStyle='rgba(91,141,239,'+alpha*0.2+')';
+         ctx.lineWidth=0.8;
+         ctx.stroke();
+       }
+     }
+   }
+   for(var i=0;i<particles.length;i++){
+     ctx.beginPath();
+     ctx.arc(particles[i].x,particles[i].y,2,0,Math.PI*2);
+     ctx.fillStyle='rgba(91,141,239,0.6)';
+     ctx.fill();
+   }
+   for(var i=0;i<particles.length;i++) particles[i].update();
+   requestAnimationFrame(draw);
+ }
+ draw();
+ var skillData = [
+   {icon:'&#128013;', label:'Python', desc:'数据分析 / 机器学习', level:92, color:'#3dd68c'},
+   {icon:'&#128202;', label:'SQL', desc:'数据查询 / 数据仓库', level:85, color:'#5b8def'},
+   {icon:'&#129258;', label:'Machine Learning', desc:'Scikit-learn / XGBoost', level:80, color:'#a78bfa'},
+   {icon:'&#129513;', label:'Deep Learning', desc:'PyTorch / TensorFlow', level:72, color:'#f5a623'},
+   {icon:'&#128172;', label:'NLP', desc:'Transformers / LLM 应用', level:68, color:'#f97316'},
+   {icon:'&#128230;', label:'Big Data', desc:'Spark / Hadoop / Flink', level:65, color:'#06b6d4'},
+   {icon:'&#128241;', label:'可视化', desc:'Matplotlib / ECharts / Tableau', level:88, color:'#3dd68c'},
+   {icon:'&#8984;', label:'统计学', desc:'概率 / 贝叶斯 / 假设检验', level:82, color:'#5b8def'},
+   {icon:'&#128187;', label:'开发工具', desc:'Git / Linux / Docker', level:78, color:'#a78bfa'},
+ ];
+ var skillsGrid = document.getElementById('skills-grid');
+ skillsGrid.innerHTML = '';
+ for(var i=0;i<skillData.length;i++){
+   var s=skillData[i];
+   skillsGrid.innerHTML += '<div class=\"skill-card\" data-index=\"'+i+'\"><div class=\"icon-wrap\" style=\"background:rgba('+hexToRgb(s.color)+',.12)\">'+s.icon+'</div><h3>'+s.label+'</h3><p>'+s.desc+'</p><div class=\"skill-bar\"><div class=\"fill\" data-level=\"'+s.level+'\" style=\"background:'+s.color+';width:0%\"></div></div></div>';
+ }
+ function hexToRgb(h){
+   var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+   return r+','+g+','+b;
+ }
+ var skillAnimated = false;
+ function animateSkills(){
+   if(skillAnimated) return;
+   var rect = skillsGrid.getBoundingClientRect();
+   if(rect.top < window.innerHeight-100){
+     skillAnimated = true;
+     var fills = document.querySelectorAll('.skill-card .fill');
+     for(var i=0;i<fills.length;i++){
+       (function(el){
+         var level = el.getAttribute('data-level');
+         setTimeout(function(){ el.style.width = level+'%'; }, 100);
+       })(fills[i]);
+     }
+   }
+ }
+ var projects = [
+   {
+     emoji:'&#127757;',
+     bg:'linear-gradient(135deg,#0f2027,#203a43,#2c5364)',
+     tags:['PyTorch','时序预测','LSTM'],
+     title:'空气质量预测系统',
+     desc:'基于多头注意力机制的时空卷积网络，融合气象、交通等多源数据，实现未来 48 小时 AQI 预测，MAE 较基线降低 18%。'
+   },
+   {
+     emoji:'&#128269;',
+     bg:'linear-gradient(135deg,#232526,#414345)',
+     tags:['NLP','BERT','情感分析'],
+     title:'社交媒体情感演化分析',
+     desc:'爬取百万级微博数据，使用微调的 Chinese-BERT 进行四分类情感识别，结合时间序列聚类分析舆情演变模式。'
+   },
+   {
+     emoji:'&#128203;',
+     bg:'linear-gradient(135deg,#134e5e,#71b280)',
+     tags:['Spark','协同过滤','AB测试'],
+     title:'实时新闻推荐系统',
+     desc:'基于 Spark Streaming 的实时推荐引擎，结合用户画像与协同过滤，CTR 提升 32%；设计了完整的离在线评估框架。'
+   },
+   {
+     emoji:'&#128202;',
+     bg:'linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)',
+     tags:['可视化','D3.js','地理分析'],
+     title:'全国碳排放数据看板',
+     desc:'整合公开碳排放数据集与地理信息，构建交互式 dashboard，支持省份筛选与时间轴回放，获校数据竞赛一等奖。'
+   },
+ ];
+ var projectsGrid = document.getElementById('projects-grid');
+ projectsGrid.innerHTML = '';
+ for(var i=0;i<projects.length;i++){
+   var p=projects[i];
+   var tagsHtml = '';
+   for(var j=0;j<p.tags.length;j++) tagsHtml += '<span>'+p.tags[j]+'</span>';
+   projectsGrid.innerHTML += '<div class=\"project-card\"><div class=\"thumb\" style=\"background:'+p.bg+'\">'+p.emoji+'</div><div class=\"body\"><div class=\"tags\">'+tagsHtml+'</div><h3>'+p.title+'</h3><p>'+p.desc+'</p></div></div>';
+ }
+ function onScroll(){
+   animateSkills();
+ }
+ window.addEventListener('scroll',onScroll,{passive:true});
+ onScroll();
+ setTimeout(onScroll,300);
+ </script>
+ 
 <script>
-// Skill data with inline code
-var skills = [
-  {icon:"\ud83d\udc0d",label:"Python",desc:"数据分析 / 机器学习",level:92,color:"#3dd68c",code:"import pandas as pd\nimport numpy as np\n\ndf = pd.read_csv(\"data.csv\")\nprint(df.head())\nprint(df.describe())\n\nfrom sklearn.linear_model import LinearRegression\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\nprint(f\"R2 Score: {model.score(X_test, y_test):.4f}\")"},
-  {icon:"\ud83d\udcca",label:"SQL",desc:"数据查询 / 数据仓库",level:85,color:"#5b8def",code:"-- 用户行为分析\nSELECT DATE(created_at) as day,\n  COUNT(DISTINCT user_id) as dau\nFROM user_events\nWHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)\nGROUP BY DATE(created_at)\nORDER BY day DESC;"},
-  {icon:"\ud83e\uddea",label:"ML",desc:"Scikit-learn / XGBoost",level:80,color:"#a78bfa",code:"from sklearn.ensemble import RandomForestClassifier\nfrom sklearn.model_selection import cross_val_score\n\nrf = RandomForestClassifier(n_estimators=200, max_depth=10)\nscores = cross_val_score(rf, X, y, cv=5)\nprint(f\"F1: {scores.mean():.3f}\")\"},
-  {icon:"\ud83e\udde9",label:"DL",desc:"PyTorch / TensorFlow",level:72,color:"#f5a623",code:"import torch.nn as nn\nclass Net(nn.Module):\n  def __init__(self):\n    super().__init__()\n    self.fc = nn.Linear(784, 10)\n  def forward(self, x):\n    return self.fc(x)\n\nmodel = Net()\nprint(f\"Params: {sum(p.numel() for p in model.parameters())}\")"},
-  {icon:"\ud83d\udcac",label:"NLP",desc:"Transformers / LLM",level:68,color:"#f97316",code:"from transformers import pipeline\nclassifier = pipeline(\"sentiment-analysis\")\nresult = classifier(\"这个产品很好\")\nprint(result[0])"},
-  {icon:"\ud83d\udce6",label:"Big Data",desc:"Spark / Hadoop / Flink",level:65,color:"#06b6d4",code:"from pyspark.sql import SparkSession\nspark = SparkSession.builder.appName(\"App\").getOrCreate()\ndf = spark.read.parquet(\"events/*\")\ndf.groupBy(\"category\").agg(count(\"*\")).show()\"},
-  {icon:"\ud83d\udcf1",label:"可视化",desc:"Matplotlib / ECharts",level:88,color:"#3dd68c",code:"import matplotlib.pyplot as plt\nimport seaborn as sns\nsns.lineplot(data=df, x=\"date\", y=\"value\", hue=\"category\")\nplt.title(\"趋势分析\")\nplt.show()\"},
-  {icon:"\u2318",label:"统计学",desc:"概率 / 假设检验",level:82,color:"#5b8def",code:"import scipy.stats as stats\nimport numpy as np\nctrl = np.random.normal(100, 15, 1000)\ntest = np.random.normal(105, 15, 1000)\nt_stat, p = stats.ttest_ind(test, ctrl)\nprint(f\"P-value: {p:.6f}\")"},
-  {icon:"\ud83d\udcbb",label:"DevTools",desc:"Git / Linux / Docker",level:78,color:"#a78bfa",code:"git checkout -b feature/model\ngit add .\ngit commit -m \"feat: add model\"\ngit push\n\ndocker build -t service .\ndocker run -d -p 5000:5000 service\"},
+var SKILL_CODE = {
+  "bigdata": `from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.window import Window
+
+spark = SparkSession.builder.appName("Analysis").getOrCreate()
+df = spark.read.parquet("events/*.parquet")
+
+# 窗口排名
+w = Window.partitionBy("category").orderBy(col("count").desc())
+
+result = df.groupBy("category", "date") \\
+    .agg(count("*").alias("events")) \\
+    .withColumn("rank", row_number().over(w)) \\
+    .filter(col("rank") <= 3) \\
+    .orderBy("category", "rank")
+
+result.show(20)
+result.write.mode("overwrite").parquet("output/top_events")
+`,
+  "devtools": `# Git 协作流程
+git checkout -b feature/data-pipeline
+git add src/ tests/
+git commit -m "feat: add data pipeline with validation"
+git push origin feature/data-pipeline
+
+# Docker 构建与部署
+docker build -t ml-api:latest .
+docker run -d --name ml-api -p 5000:5000 ml-api:latest
+
+# docker-compose 多服务编排
+docker-compose up -d
+docker-compose logs -f api
+
+# 模型监控
+watch -n 5 curl -s http://localhost:5000/health
+`,
+  "dl": `import torch
+import torch.nn as nn
+import torch.optim as optim
+
+class LSTMRegressor(nn.Module):
+    def __init__(self, input_dim=10, hidden_dim=64):
+        super().__init__()
+        self.lstm = nn.LSTM(input_dim, hidden_dim, batch_first=True)
+        self.fc = nn.Linear(hidden_dim, 1)
+    def forward(self, x):
+        out, _ = self.lstm(x)
+        return self.fc(out[:, -1, :])
+
+model = LSTMRegressor()
+criterion = nn.MSELoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+for epoch in range(50):
+    pred = model(X_train)
+    loss = criterion(pred, y_train)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+    if epoch % 10 == 0:
+        print(f"Epoch {epoch}, Loss: {loss.item():.4f}")
+
+print(f"Total params: {sum(p.numel() for p in model.parameters())}")
+`,
+  "ml": `from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+import pandas as pd
+
+df = pd.read_csv("data.csv")
+X = df.drop("target", axis=1)
+y = df["target"]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42)
+
+model = RandomForestClassifier(
+    n_estimators=200, max_depth=10, random_state=42)
+
+# 交叉验证
+scores = cross_val_score(model, X_train, y_train, cv=5)
+print(f"CV F1: {scores.mean():.3f} (+/- {scores.std():.3f})")
+
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+print(classification_report(y_test, y_pred))
+
+# 特征重要性
+fi = pd.DataFrame({"feature": X.columns,
+                    "importance": model.feature_importances_})
+print(fi.sort_values("importance", ascending=False).head(5))
+`,
+  "nlp": `from transformers import pipeline
+import jieba
+
+# 中文情感分析
+classifier = pipeline("sentiment-analysis",
+                       model="bert-base-chinese")
+
+texts = ["这个产品非常好用，强烈推荐！",
+         "质量太差了，用一次就坏",
+         "中规中矩，没什么特别"]
+
+for t in texts:
+    r = classifier(t)[0]
+    print(f"文本: {t}")
+    print(f"  情感: {r['label']}, 置信度: {r['score']:.4f}")
+
+# 分词
+words = jieba.lcut("数据分析是未来最重要的技能之一")
+print("分词:", "/".join(words))
+`,
+  "python": `import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 加载与预览
+df = pd.read_csv("sales.csv")
+print("Shape:", df.shape)
+print(df.head())
+
+# 清洗与特征工程
+df.dropna(inplace=True)
+df["date"] = pd.to_datetime(df["date"])
+df["month"] = df["date"].dt.month
+df["revenue"] = df["price"] * df["qty"]
+
+# 分组聚合
+monthly = df.groupby("month")["revenue"].sum()
+print(monthly)
+
+# 可视化趋势
+plt.figure(figsize=(10, 4))
+plt.plot(df["date"], df["revenue"])
+plt.title("Revenue Trend")
+plt.show()
+
+# 线性回归建模
+from sklearn.linear_model import LinearRegression
+X = df[["month", "price"]]
+y = df["revenue"]
+model = LinearRegression().fit(X, y)
+print(f"R2 Score: {model.score(X, y):.3f}")
+`,
+  "sql": `-- 用户分层分析
+WITH user_stats AS (
+  SELECT user_id,
+         COUNT(*) AS sessions,
+         SUM(duration) AS total_time,
+         AVG(duration) AS avg_session
+  FROM sessions
+  WHERE date >= '2024-01-01'
+  GROUP BY user_id
+)
+SELECT
+  CASE WHEN sessions > 50 THEN '重度用户'
+       WHEN sessions > 10 THEN '中度用户'
+       ELSE '轻度用户' END AS user_type,
+  COUNT(*) AS user_count,
+  ROUND(AVG(total_time), 2) AS avg_total_time
+FROM user_stats
+GROUP BY user_type
+ORDER BY user_count DESC;
+`,
+  "stat": `import numpy as np
+import scipy.stats as stats
+
+np.random.seed(42)
+ctrl = np.random.binomial(1, 0.10, 5000)
+test = np.random.binomial(1, 0.12, 5000)
+
+print(f"Control CR: {ctrl.mean():.4f}")
+print(f"Test CR: {test.mean():.4f}")
+print(f"Lift: {(test.mean()-ctrl.mean())/ctrl.mean()*100:.2f}%")
+
+# 卡方检验
+tbl = [[(ctrl==0).sum(), (ctrl==1).sum()],
+       [(test==0).sum(), (test==1).sum()]]
+chi2, p, _, _ = stats.chi2_contingency(tbl)
+print(f"Chi2: {chi2:.4f}, p: {p:.6f}")
+print("Significant" if p < 0.05 else "Not significant")
+`,
+  "viz": `import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+import numpy as np
+
+sns.set_theme(style="darkgrid")
+df = pd.DataFrame({"date": pd.date_range("2024-01-01", periods=100),
+                    "sales": np.random.randn(100).cumsum() + 100,
+                    "cat": np.random.choice(["A","B","C"], 100)})
+
+fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+axes[0,0].plot(df["date"], df["sales"])
+axes[0,0].set_title("Sales Trend")
+sns.boxplot(data=df, x="cat", y="sales", ax=axes[0,1])
+axes[1,0].hist(df["sales"], bins=20, edgecolor="white")
+axes[1,0].set_title("Distribution")
+axes[1,1].scatter(range(len(df)), df["sales"], alpha=0.5)
+plt.tight_layout()
+plt.show()
+`,
+};
+
+var PROJ_DETAIL = [
+  {"title": `空气质量预测系统`,
+   "sections": [
+    ["背景与动机", `随着工业化与城市化进程加快，空气污染已成为影响公众健康的重要问题。传统的数值预报方法计算成本高、部署复杂，而深度学习方法为空气质量预测提供了新的可能性。本项目旨在开发一个端到端的深度学习预测系统，实现高精度的未来48小时AQI预测。`],
+    ["技术方案", `模型采用时空卷积网络（ST-CNN）结合多头自注意力机制。首先使用1D-CNN提取各监测站点的时序特征，再通过图卷积网络捕获站点间的空间相关性，最后以Transformer编码器输出未来48小时的逐小时AQI预测值。数据融合了气象、交通流量和工业排放等多源数据，涵盖3个城市、50个监测站点、5年的历史记录。`],
+   ],
+   "tech": ``,
+   "code": "https://github.com/zhoutianyun/air-quality-prediction"
+  },
+  {"title": `社交媒体情感演化分析`,
+   "sections": [
+    ["背景与动机", `社交媒体已成为公众意见表达的主要平台。如何从海量文本中自动识别情感倾向并追踪舆情演变，对于社会管理和商业决策具有重要价值。本项目构建了一套完整的情感分析流水线，覆盖数据采集、预处理、模型训练到可视化展示。`],
+    ["技术方案", `使用Scrapy框架爬取百万级微博数据，经过去重、分词（jieba）、去停用词等预处理后，使用微调的Chinese-BERT模型进行四分类情感识别（积极、消极、中性、愤怒）。在时序维度上，结合滑动窗口和DTW距离进行情感演化模式的聚类分析，识别不同的事件演化类型。`],
+   ],
+   "tech": ``,
+   "code": "https://github.com/zhoutianyun/sentiment-analysis"
+  },
+  {"title": `实时新闻推荐系统`,
+   "sections": [
+    ["背景与动机", `在海量信息时代，个性化推荐是提升用户粘性的关键。传统的离线推荐系统无法及时响应用户的实时行为变化。本项目设计并实现了一个端到端的实时新闻推荐系统，从数据采集到推荐结果输出实现分钟级延迟。`],
+    ["技术方案", `基于Spark Streaming构建实时数据处理管道，整合用户实时点击流数据和离线画像特征。推荐算法采用混合策略：协同过滤（ALS算法）生成候选集，LightGBM进行CTR预估排序，并加入探索策略（epsilon-greedy）。设计了完整的离在线A/B测试评估框架，支持多实验组并行。`],
+   ],
+   "tech": ``,
+   "code": "https://github.com/zhoutianyun/news-recommender"
+  },
+  {"title": `全国碳排放数据看板`,
+   "sections": [
+    ["背景与动机", `碳中和已成为全球共识。然而碳排放数据来源分散、格式不统一，缺乏直观的可视化分析工具。本项目旨在建设一个全国范围的碳排放数据可视化平台，辅助政策制定者和公众理解碳排放格局。`],
+    ["技术方案", `整合多源公开碳排放数据集（CEADs、Global Carbon Project等），基于ECharts和D3.js构建交互式地图看板，支持省份筛选、时间轴回放和多指标对比。前端采用Vue.js框架，后端使用Flask提供RESTful API，数据存储在MySQL中。`],
+   ],
+   "tech": ``,
+   "code": "https://github.com/zhoutianyun/carbon-dashboard"
+  },
 ];
 
-var emojis = ["\ud83c\udf0d","\ud83d\udd0d","\ud83d\udccb","\ud83d\udcca"];
-var pbgs = ["linear-gradient(135deg,#0f2027,#203a43,#2c5364)","linear-gradient(135deg,#232526,#414345)","linear-gradient(135deg,#134e5e,#71b280)","linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)"];
-var ptags = [["PyTorch","时序预测","LSTM"],["NLP","BERT","情感分析"],["Spark","推荐","A/B测试"],["可视化","D3.js","地理"]];
-var ptitles = ["空气质量预测系统","社交媒体情感分析","实时新闻推荐系统","全国碳排放数据看板"];
-var pdescs = ["基于注意力的时空网络预测AQI","百万级微博情感识别","Spark Streaming实时推荐","可视化碳排放分析平台"];
-var pfull = [
-  {bg:"随着工业化加快，空气污染已成为重要问题。本项目开发了一个端到端的深度学习预测系统，实现高精度的未来48小时AQI预测。",ap:"采用ST-CNN结合多头自注意力机制，融合气象、交通、工业排放等多源数据。",re:"MAE达到12.3，较基线降低18%，获数据竞赛区域一等奖。",tech:["Python","PyTorch","Pandas","Docker"],code:"https://github.com/zhoutianyun/air-quality"},
-  {bg:"社交媒体是公众意见的主要平台。本项目构建了完整的情感分析流水线。",ap:"使用Scrapy爬取百万级微博数据，微调Chinese-BERT进行四分类情感识别。",re:"准确率94.2%，F1值0.937。识别3种情感演化模式。",tech:["Python","Scrapy","BERT","Matplotlib"],code:"https://github.com/zhoutianyun/sentiment"},
-  {bg:"传统离线推荐无法响应实时行为。本项目设计了实时新闻推荐系统。",ap:"Spark Streaming数据处理管道，ALS协同过滤+LightGBM排序+ε-greedy探索。",re:"CTR提升32%，响应延迟控制在500ms以内。",tech:["Spark","Kafka","LightGBM","Redis"],code:"https://github.com/zhoutianyun/recommender"},
-  {bg:"碳中和已成为全球共识。本项目建设了全国碳排放可视化平台。",ap:"整合CEADs等多源数据集，ECharts+D3.js构建交互式看板。",re:"覆盖2010-2024年31个省份数据，获校数据竞赛一等奖。",tech:["Vue.js","Flask","ECharts","MySQL"],code:"https://github.com/zhoutianyun/carbon"},
-];
-
-// Render skills
-var sg = document.getElementById("skillsGrid");
-skills.forEach(function(s, i){
-  var r = parseInt(s.color.slice(1,3),16), g = parseInt(s.color.slice(3,5),16), b = parseInt(s.color.slice(5,7),16);
-  sg.innerHTML += "<div class=\"card\" onclick=\"toggleSkill("+i+")\"><div class=\"ic\" style=\"background:rgba("+r+","+g+","+b+",.12)\">"+s.icon+"</div><h3>"+s.label+"</h3><p>"+s.desc+"</p><div class=\"dp\" id=\"sk"+i+"\"><pre><code>"+s.code+"</code></pre></div></div>";
+// Skill card click handler
+document.addEventListener("DOMContentLoaded", function(){
+  var sg = document.getElementById("skills-grid");
+  if(sg) sg.addEventListener("click", function(e){
+    var card = e.target.closest(".skill-card");
+    if(!card) return;
+    var idx = card.dataset.index;
+    if(idx === undefined) return;
+    var existing = document.getElementById("sd-"+idx);
+    if(existing){
+      existing.style.display = existing.style.display==="none" ? "block" : "none";
+      return;
+    }
+    var sid = ["python","sql","ml","dl","nlp","bigdata","viz","stat","devtools"][parseInt(idx)];
+    var code = SKILL_CODE[sid];
+    if(!code) return;
+    var div = document.createElement("div");
+    div.id = "sd-"+idx;
+    div.className = "detail-panel";
+    div.innerHTML = "<pre style="margin:0;background:#0b0d14;border:1px solid #2c3347;border-radius:6px;padding:12px;overflow-x:auto"><code>"+code+"</code></pre>";
+    card.parentNode.insertBefore(div, card.nextSibling);
+  });
+  
+  var pg = document.getElementById("projects-grid");
+  if(pg) pg.addEventListener("click", function(e){
+    var card = e.target.closest(".project-card");
+    if(!card) return;
+    var idx = card.dataset.index;
+    if(idx === undefined) return;
+    var existing = document.getElementById("pd-"+idx);
+    if(existing){
+      existing.style.display = existing.style.display==="none" ? "block" : "none";
+      return;
+    }
+    var p = PROJ_DETAIL[parseInt(idx)];
+    if(!p) return;
+    var html = "";
+    p.sections.forEach(function(s){ html += "<h4>"+s[0]+"</h4><p>"+s[1]+"</p>"; });
+    html += "<div class="tags">"+p.tech+"</div>";
+    html += "<a href=""+p.code+"" class="code-link" target="_blank">\ud83d\udc79 \u67e5\u770b\u6e90\u7801</a>";
+    var div = document.createElement("div");
+    div.id = "pd-"+idx;
+    div.className = "detail-panel";
+    div.innerHTML = html;
+    card.parentNode.insertBefore(div, card.nextSibling);
+  });
 });
-
-// Render projects
-var pg = document.getElementById("projectsGrid");
-ptitles.forEach(function(t,i){
-  var th = ""; ptags[i].forEach(function(tg){ th += "<span class=\"tg\">"+tg+"</span>"; });
-  var p = pfull[i];
-  pg.innerHTML += "<div class=\"pc\" onclick=\"toggleProj("+i+")\" style=\"cursor:pointer\"><div class=\"pt\" style=\"background:"+pbgs[i]+"\">"+emojis[i]+"</div><div class=\"pb\">"+th+"<h3>"+t+"</h3><p>"+pdescs[i]+"</p><div class=\"dp\" id=\"pj"+i+"\"><h4>背景与动机</h4><p>"+p.bg+"</p><h4>技术方案</h4><p>"+p.ap+"</p><h4>成果与指标</h4><p>"+p.re+"</p><div class=\"tg\">"+p.tech.map(function(t){return "<span>"+t+"</span>";}).join("")+"</div><a href=\""+p.code+"\" class=\"cl\" target=\"_blank\">\ud83d\udc79 查看源码</a></div></div></div>";
-});
-
-// Toggle functions
-function toggleSkill(i){
-  var el = document.getElementById("sk"+i);
-  if(el) el.classList.toggle("sh");
-}
-function toggleProj(i){
-  var el = document.getElementById("pj"+i);
-  if(el) el.classList.toggle("sh");
-}
 </script>
 </body>
-</html>
+ </html>
