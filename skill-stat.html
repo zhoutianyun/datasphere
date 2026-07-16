@@ -2,20 +2,22 @@
 <html lang="zh-CN">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>统计学 · 周添运</title>
-<style>body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;background:#161b24;color:#eef1f6;line-height:1.7}
-a{color:#5b8def;text-decoration:none}
-nav{position:fixed;top:0;left:0;right:0;background:rgba(11,13,20,.75);backdrop-filter:blur(12px);border-bottom:1px solid #2c3347;height:52px;display:flex;align-items:center;justify-content:center}
-nav i{max-width:800px;width:100%;padding:0 20px;display:flex;align-items:center;justify-content:space-between;font-style:normal;font-size:16px}
-nav .bk{color:#a8b0c4}nav .bk:hover{color:#eef1f6}
-.w{max-width:800px;margin:0 auto;padding:32px 20px 60px;margin-top:52px}
-h1{font-size:28px;font-weight:700;margin-bottom:2px}
-.lv{font-size:15px;color:#a8b0c4;margin-bottom:20px}
-pre{background:#161b24;border:1px solid #2c3347;border-radius:6px;padding:14px;overflow-x:auto;font-size:16px;line-height:1.5;color:#eef1f6;font-family:ui-monospace,'SF Mono',Consolas,monospace}
-.bar{height:4px;background:#2c3347;border-radius:2px;margin:16px 0 24px;width:100%}
-.bar .f{height:100%;border-radius:2px;width:82%;background:#5b8def}
-footer{text-align:center;padding:24px;border-top:1px solid #2c3347;color:#a8b0c4;font-size:16px}
-</style></head>
-<body>
+
+<style>
+body{background:#161b24;color:#eef1f6;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;line-height:1.7;margin:0;padding:0}
+a{color:#5b8def;text-decoration:none}a:hover{color:#8aafff}
+nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(22,27,36,.85);backdrop-filter:blur(12px);border-bottom:1px solid #2c3347;height:56px;display:flex;align-items:center;justify-content:center}
+nav i{max-width:800px;width:100%;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-style:normal;font-size:14px}
+nav .bk{color:#a8b0c4;display:flex;align-items:center;gap:6px}nav .bk:hover{color:#5b8def}
+.w{max-width:800px;margin:0 auto;padding:80px 24px 60px;position:relative;z-index:2}
+h1{font-size:26px;font-weight:700;margin-bottom:4px}.lv{font-size:13px;color:#a8b0c4;margin-bottom:16px}
+pre{background:#1e2431;border:1px solid #2c3347;border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;line-height:1.6;color:#eef1f6;font-family:ui-monospace,"SF Mono",Consolas,monospace}
+code{font-family:inherit}
+.bar{height:6px;background:#2c3347;border-radius:3px;margin:0 0 24px;overflow:hidden}
+.bar .f{height:100%;border-radius:3px;transition:width 1s ease}
+footer{text-align:center;padding:28px 24px;border-top:1px solid #2c3347;color:#a8b0c4;font-size:12px;position:relative;z-index:2}
+#hero-canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;pointer-events:none}.hero-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 30%,transparent 40%,rgba(22,27,36,.7) 90%)}</style></head>
+<body><canvas id="hero-canvas"></canvas><div class="hero-overlay"></div><script>var c=document.getElementById("hero-canvas"),x=c.getContext("2d"),W,H;function rs(){W=c.width=innerWidth;H=c.height=innerHeight}rs();addEventListener("resize",rs);var P=60,D=120;function Pt(){this.rs=function(){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*.5;this.vy=(Math.random()-.5)*.5};this.rs();this.up=function(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>W){this.vx*=-1;this.x=Math.max(0,Math.min(this.x,W))}if(this.y<0||this.y>H){this.vy*=-1;this.y=Math.max(0,Math.min(this.y,H))}}}var p=[];for(var i=0;i<P;i++)p.push(new Pt());function dr(){x.clearRect(0,0,W,H);for(var i=0;i<p.length;i++){for(var j=i+1;j<p.length;j++){var dx=p[i].x-p[j].x,dy=p[i].y-p[j].y,d=dx*dx+dy*dy;if(d<D*D){var a=1-d/(D*D);x.beginPath();x.moveTo(p[i].x,p[i].y);x.lineTo(p[j].x,p[j].y);x.strokeStyle="rgba(91,141,239,"+a*.15+")";x.lineWidth=.6;x.stroke()}}}for(var i=0;i<p.length;i++){x.beginPath();x.arc(p[i].x,p[i].y,1.5,0,Math.PI*2);x.fillStyle="rgba(91,141,239,.4)";x.fill()}for(var i=0;i<p.length;i++)p[i].up();requestAnimationFrame(dr)}dr();</script>
 <nav><i><span style="font-weight:600">统计学</span><a href="index.html" class="bk">&#8592; 返回首页</a></i></nav>
 <div class="w">
 <h1>统计学</h1>

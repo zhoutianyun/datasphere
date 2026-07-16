@@ -1,32 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>社交媒体情感演化分析 · 周添运</title><style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0b0d14;--bg-card:#131620;--border:#262b3a;--text:#e2e6f0;--text-dim:#868ca0;--accent:#5b8def;--green:#3dd68c;--radius:8px;--max-w:800px}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased}
-a{color:var(--accent);text-decoration:none}a:hover{color:#8aafff}
-nav{position:fixed;top:0;left:0;right:0;z-index:50;backdrop-filter:blur(12px);background:rgba(11,13,20,.75);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;justify-content:center}
-nav .inner{width:100%;max-width:var(--max-w);padding:0 24px;display:flex;align-items:center;justify-content:space-between}
-nav .logo{font-weight:600;font-size:15px;color:var(--accent)}
-nav .links a{font-size:14px;font-weight:500;color:var(--text-dim);transition:color .2s;display:flex;align-items:center;gap:6px}nav .links a:hover{color:var(--text)}
-.banner{height:180px;display:flex;align-items:center;justify-content:center;font-size:64px;margin-top:56px}
-.wrap{max-width:var(--max-w);margin:0 auto;padding:36px 24px 60px}
-h1{font-size:28px;font-weight:700;margin-bottom:6px;letter-spacing:-.02em}
-.tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:28px}
-.tags span{font-size:12px;padding:3px 12px;border-radius:14px;background:rgba(91,141,239,.1);color:var(--accent);border:1px solid rgba(91,141,239,.15)}
-.sec{margin-bottom:28px}
-.sec h2{font-size:16px;font-weight:600;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.sec p{font-size:15px;color:var(--text-dim);line-height:1.9}
-.tg{display:flex;gap:8px;flex-wrap:wrap}
-.tg span{padding:4px 14px;border-radius:8px;font-size:13px;background:var(--bg-card);border:1px solid var(--border);color:var(--text)}
-.cb{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:var(--radius);background:rgba(61,214,140,.1);border:1px solid rgba(61,214,140,.2);color:var(--green);font-size:14px;font-weight:500;margin-top:8px;transition:all .2s}
-.cb:hover{border-color:var(--green);background:rgba(61,214,140,.15)}
-.rb{padding:16px 20px;border-radius:var(--radius);background:var(--bg-card);border:1px solid var(--border);margin-top:8px}
-footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);color:var(--text-dim);font-size:13px}
-@media(max-width:480px){.wrap{padding:24px 16px 40px}h1{font-size:24px}}
-</style></head>
-<body>
+<title>社交媒体情感演化分析 · 周添运</title>
+<style>
+body{background:#161b24;color:#eef1f6;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;line-height:1.7;margin:0;padding:0}
+a{color:#5b8def;text-decoration:none}a:hover{color:#8aafff}
+nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(22,27,36,.85);backdrop-filter:blur(12px);border-bottom:1px solid #2c3347;height:56px;display:flex;align-items:center;justify-content:center}
+nav i{max-width:800px;width:100%;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font-style:normal;font-size:14px}
+nav .bk{color:#a8b0c4;display:flex;align-items:center;gap:6px}nav .bk:hover{color:#5b8def}
+.w{max-width:800px;margin:0 auto;padding:80px 24px 60px;position:relative;z-index:2}
+h1{font-size:26px;font-weight:700;margin-bottom:4px}.lv{font-size:13px;color:#a8b0c4;margin-bottom:16px}
+pre{background:#1e2431;border:1px solid #2c3347;border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;line-height:1.6;color:#eef1f6;font-family:ui-monospace,"SF Mono",Consolas,monospace}
+code{font-family:inherit}
+.bar{height:6px;background:#2c3347;border-radius:3px;margin:0 0 24px;overflow:hidden}
+.bar .f{height:100%;border-radius:3px;transition:width 1s ease}
+footer{text-align:center;padding:28px 24px;border-top:1px solid #2c3347;color:#a8b0c4;font-size:12px;position:relative;z-index:2}
+#hero-canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;pointer-events:none}.hero-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 30%,transparent 40%,rgba(22,27,36,.7) 90%)}</style></head>
+<body><canvas id="hero-canvas"></canvas><div class="hero-overlay"></div><script>var c=document.getElementById("hero-canvas"),x=c.getContext("2d"),W,H;function rs(){W=c.width=innerWidth;H=c.height=innerHeight}rs();addEventListener("resize",rs);var P=60,D=120;function Pt(){this.rs=function(){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*.5;this.vy=(Math.random()-.5)*.5};this.rs();this.up=function(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>W){this.vx*=-1;this.x=Math.max(0,Math.min(this.x,W))}if(this.y<0||this.y>H){this.vy*=-1;this.y=Math.max(0,Math.min(this.y,H))}}}var p=[];for(var i=0;i<P;i++)p.push(new Pt());function dr(){x.clearRect(0,0,W,H);for(var i=0;i<p.length;i++){for(var j=i+1;j<p.length;j++){var dx=p[i].x-p[j].x,dy=p[i].y-p[j].y,d=dx*dx+dy*dy;if(d<D*D){var a=1-d/(D*D);x.beginPath();x.moveTo(p[i].x,p[i].y);x.lineTo(p[j].x,p[j].y);x.strokeStyle="rgba(91,141,239,"+a*.15+")";x.lineWidth=.6;x.stroke()}}}for(var i=0;i<p.length;i++){x.beginPath();x.arc(p[i].x,p[i].y,1.5,0,Math.PI*2);x.fillStyle="rgba(91,141,239,.4)";x.fill()}for(var i=0;i<p.length;i++)p[i].up();requestAnimationFrame(dr)}dr();</script>
 <nav><div class="inner"><span class="logo">&#9670; DataSphere</span><div class="links"><a href="index.html">&#8592; 返回首页</a></div></div></nav>
 <div class="banner" style="background:linear-gradient(135deg,#232526,#414345)">🔍</div>
 <div class="wrap">
