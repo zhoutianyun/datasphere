@@ -35,14 +35,14 @@ body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 <canvas id='hero-canvas'></canvas>
 <div class='hero-overlay'></div>
 
-<nav><i><span class="l">&#9670; <span>Data</span>Sphere</span><span class="m"><a href="#about">关于<div class="bar"><div class="f" style="background:#3dd68c;--lvl:92%"></div></div></a><a href="#skills">技能</a><a href="#projects">项目</a><a href="#education">经历</a><a href="#contact">联系</a><a href="tool/" style="color:#3dd68c">&#127919; 职业诊断</a></span></i></nav>
+<nav><i><span class="l">&#9670; <span>Data</span>Sphere</span><span class="m"><a href="#about">关于<div class="bar"><div class="f" style="background:#3dd68c;--lvl:92%"></div></div><a href="#skills">技能</a>项目</a><a href="#education">经历</a><a href="#contact">联系</a><a href="tool/" style="color:#3dd68c">&#127919; 职业诊断</a></span></i></nav>
 <div class="wrap" style="min-height:100vh;display:flex;align-items:center"><div style="max-width:680px"><div style="display:inline-block;font-size:16px;font-weight:500;color:#5b8def;background:rgba(91,141,239,.1);padding:3px 12px;border-radius:16px;border:1px solid rgba(91,141,239,.2);margin-bottom:10px">数据科学与大数据技术</div>
-<h1 style="font-size:clamp(2.4rem,5.5vw,4.2rem);font-weight:700;line-height:1.15;margin-bottom:14px">你好，我是 <span style="background:linear-gradient(135deg,#5b8def,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">周添运</span><br>用数据 <span style="background:linear-gradient(135deg,#5b8def,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">洞察世界</span></h1>
+<h1 style="font-size:clamp(2.4rem,5.5vw,4.2rem);font-weight:700;line-height:1.15;margin-bottom:14px">你好，我是 <span style="color:var(--accent)">周添运</span><br>用数据 <span style="color:var(--accent)">洞察世界</span></h1>
 <p style="font-size:clamp(.95rem,1.6vw,1.1rem);color:var(--dim);max-width:520px;line-height:1.8;margin-bottom:24px">数据科学与大数据技术专业，热衷于从数据中挖掘价值。熟悉 Python 数据科学生态、机器学习与深度学习，擅长用统计思维和可视化讲出数据背后的故事。</p>
 <div><a href="#projects" style="display:inline-block;padding:9px 22px;border-radius:6px;background:#5b8def;color:#fff;font-size:15px;font-weight:500;margin-right:10px">查看项目</a><a href="#contact" style="display:inline-block;padding:9px 22px;border-radius:6px;border:1px solid var(--border);color:var(--text);font-size:15px;font-weight:500">联系我</a></div></div></div>
 <div id="about" class="wrap"><div class="sh"><div class="num">/ 01</div><h2>关于我</h2></div><div class="g2"><div><p style="color:var(--dim);margin-bottom:12px;font-size:16px">数据科学与大数据技术专业在读，具备扎实的数学、统计学和计算机科学基础。熟悉数据采集、清洗、分析、建模到可视化的全流程，擅长用 Python 生态工具链解决实际问题。</p><p style="color:var(--dim);margin-bottom:12px;font-size:16px">多次参与数据竞赛并获奖，研究方向包括时序预测、推荐系统与自然语言处理。</p></div>
-<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"><div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:700;font-family:ui-monospace,monospace;background:linear-gradient(135deg,#5b8def,#3dd68c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">20+</div><div style="font-size:16px;color:var(--dim)">项目完成</div></div>
-<div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:700;font-family:ui-monospace,monospace;background:linear-gradient(135deg,#5b8def,#3dd68c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">5</div><div style="font-size:16px;color:var(--dim)">竞赛获奖</div></div>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"><a href="#projects" style="display:block;text-decoration:none;color:inherit"><div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:14px;text-align:center";cursor:pointer" onclick="document.getElementById('projects').scrollIntoView({behavior:'smooth'})"><div style="font-size:28px;font-weight:700;font-family:ui-monospace,monospace;background:linear-gradient(135deg,#5b8def,#3dd68c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">20+</div><div style="font-size:16px;color:var(--dim)">项目完成</div></a></div>
+<a onclick="showAwards()" style="display:block;text-decoration:none;color:inherit;cursor:pointer"><div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:14px;text-align:center";cursor:pointer" onclick="document.getElementById('awardModal').style.display='flex'"><div style="font-size:28px;font-weight:700;font-family:ui-monospace,monospace;background:linear-gradient(135deg,#5b8def,#3dd68c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">5</div><div style="font-size:16px;color:var(--dim)">竞赛获奖</div></a></div>
 <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:700;font-family:ui-monospace,monospace;background:linear-gradient(135deg,#5b8def,#3dd68c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">10K+</div><div style="font-size:16px;color:var(--dim)">代码提交</div></div>
 <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:700;font-family:ui-monospace,monospace;background:linear-gradient(135deg,#5b8def,#3dd68c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">2</div><div style="font-size:16px;color:var(--dim)">学术论文</div></div></div></div></div>
 <div id="skills" class="wrap"><div class="sh"><div class="num">/ 02</div><h2>技术栈</h2></div><div class="g3">
@@ -72,16 +72,16 @@ body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
   <textarea name="message" placeholder="你的消息..." required></textarea>
   <button type="submit">发送邮件</button>
 </form></div></div>
-<footer>&copy; 2026 DataSphere</footer>
+<footer>&copy; 2026 周添运</footer>
 <script>
 var c=document.getElementById("hero-canvas"),x=c.getContext("2d"),W,H;
 function rs(){W=c.width=innerWidth;H=c.height=innerHeight}
 rs();addEventListener("resize",rs);
-var P=80,D=120;
+var P=40,D=120;
 function Pt(){this.rs=function(){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*.5;this.vy=(Math.random()-.5)*.5};this.rs();this.up=function(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>W){this.vx*=-1;this.x=Math.max(0,Math.min(this.x,W))}if(this.y<0||this.y>H){this.vy*=-1;this.y=Math.max(0,Math.min(this.y,H))}}}
 var p=[];for(var i=0;i<P;i++)p.push(new Pt());
-function dr(){x.clearRect(0,0,W,H);for(var i=0;i<p.length;i++){for(var j=i+1;j<p.length;j++){var dx=p[i].x-p[j].x,dy=p[i].y-p[j].y,d=dx*dx+dy*dy;if(d<D*D){var a=1-d/(D*D);x.beginPath();x.moveTo(p[i].x,p[i].y);x.lineTo(p[j].x,p[j].y);x.strokeStyle="rgba(91,141,239,"+a*.25+")";x.lineWidth=.6;x.stroke()}}}
-for(var i=0;i<p.length;i++){x.beginPath();x.arc(p[i].x,p[i].y,1.5,0,Math.PI*2);x.fillStyle="rgba(100,160,255,.5)";x.fill()}
+function dr(){x.clearRect(0,0,W,H);for(var i=0;i<p.length;i++){for(var j=i+1;j<p.length;j++){var dx=p[i].x-p[j].x,dy=p[i].y-p[j].y,d=dx*dx+dy*dy;if(d<D*D){var a=1-d/(D*D);x.beginPath();x.moveTo(p[i].x,p[i].y);x.lineTo(p[j].x,p[j].y);x.strokeStyle="rgba(91,141,239,"+a*.08+")";x.lineWidth=.6;x.stroke()}}}
+for(var i=0;i<p.length;i++){x.beginPath();x.arc(p[i].x,p[i].y,1.5,0,Math.PI*2);x.fillStyle="rgba(91,141,239,.3)";x.fill()}
 for(var i=0;i<p.length;i++)p[i].up();requestAnimationFrame(dr)}
 dr();
 </script>
@@ -132,6 +132,25 @@ if (sg) observer.observe(sg);
     cp.dispatchEvent(new Event("input"));
   }
 })();
+</script>
+
+<div id="awardModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center" onclick="this.style.display='none'">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;max-width:500px;width:90%;padding:28px 32px;animation:fi .3s ease;max-height:80vh;overflow-y:auto" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h3 style="font-size:18px;font-weight:600">竞赛获奖</h3>
+      <span onclick="document.getElementById('awardModal').style.display='none'" style="font-size:20px;cursor:pointer;color:var(--dim)">×</span>
+    </div>
+    <ul style="list-style:none;padding:0">
+      <li style="padding:12px 0;border-bottom:1px solid var(--border);font-size:14px;display:flex;gap:12px"><span style="color:var(--accent);font-weight:600;flex-shrink:0">2024</span>全国大学生数据竞赛 · 区域一等奖</li>
+      <li style="padding:12px 0;border-bottom:1px solid var(--border);font-size:14px;display:flex;gap:12px"><span style="color:var(--accent);font-weight:600;flex-shrink:0">2024</span>Kaggle 竞赛 · 银牌 (Top 5%)</li>
+      <li style="padding:12px 0;border-bottom:1px solid var(--border);font-size:14px;display:flex;gap:12px"><span style="color:var(--accent);font-weight:600;flex-shrink:0">2023</span>校数学建模竞赛 · 一等奖</li>
+      <li style="padding:12px 0;border-bottom:1px solid var(--border);font-size:14px;display:flex;gap:12px"><span style="color:var(--accent);font-weight:600;flex-shrink:0">2023</span>全国大学生创新创业项目 · 优秀项目奖</li>
+      <li style="padding:12px 0;font-size:14px;display:flex;gap:12px"><span style="color:var(--accent);font-weight:600;flex-shrink:0">2024</span>学院学术论文竞赛 · 二等奖</li>
+    </ul>
+  </div>
+</div>
+<script>
+function showAwards(){document.getElementById("awardModal").style.display="flex"}
 </script>
 </body>
 </html>
