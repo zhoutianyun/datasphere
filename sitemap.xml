@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://zhoutianyun.github.io/datasphere/</loc><priority>1.0</priority></url>
+  <url><loc>https://zhoutianyun.github.io/datasphere/tool/</loc><priority>0.9</priority></url>
+  <url><loc>https://zhoutianyun.github.io/datasphere/skill-python.html</loc><priority>0.7</priority></url>
+  <url><loc>https://zhoutianyun.github.io/datasphere/skill-sql.html</loc><priority>0.7</priority></url>
+  <url><loc>https://zhoutianyun.github.io/datasphere/skill-ml.html</loc><priority>0.7</priority></url>
+  <url><loc>https://zhoutianyun.github.io/datasphere/skill-dl.html</loc><priority>0.7</priority></url>
+  <url><loc>https://zhoutianyun.github.io/datasphere/skill-nlp.html</loc><priority>0.7</priority></url>
+  <url><loc>https://zhoutianyun.github.io/datasphere/skill-bigdata.html</loc><priority>0.7</priority></url>
+  <url><loc>https://zhoutianyun.github.io/datasphere/skill-viz.html</loc><priority>0.7</priority></url>
+  <url><loc>https://zhoutianyun.github.io/datasphere/skill-stat.html</loc><priority>0.7</priority></url>
+  <url><loc>https://zhoutianyun.github.io/datasphere/skill-devtools.html</loc><priority>0.7</priority></url>
+  <url><loc>https://zhoutianyun.github.io/datasphere/project-1.html</loc><priority>0.8</priority></url>
+  <url><loc>https://zhoutianyun.github.io/datasphere/project-2.html</loc><priority>0.8</priority></url>
+  <url><loc>https://zhoutianyun.github.io/datasphere/project-3.html</loc><priority>0.8</priority></url>
+  <url><loc>https://zhoutianyun.github.io/datasphere/project-4.html</loc><priority>0.8</priority></url>
+</urlset>
