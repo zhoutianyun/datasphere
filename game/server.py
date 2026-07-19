@@ -1674,6 +1674,7 @@ ${snapshot.log}${winnerText}`;
             <div class="badge">护盾：${player.shield}</div>
 
             <div class="badge">手牌：${player.hand_count}</div>
+            ${isMe && isCurrent && snapshot.status === "playing" ? '<button class="ghost" onclick="skipTurn()" style="font-size:11px;padding:3px 8px">跳过</button>' : ""}
 
             <div class="badge">坐位：${player.is_host ? "房主" : (player.is_ai ? "AI" : "玩家")}</div>
 
