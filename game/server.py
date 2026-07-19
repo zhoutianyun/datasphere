@@ -304,10 +304,7 @@ HTML = """<!DOCTYPE html>
       margin-bottom: 12px;
       white-space: pre-line;
     }
-    .ddz-layout {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    .ddz-layout { display:flex; flex-direction:column; gap:8px;
       padding: 12px 16px;
       min-height: 600px;
     }
@@ -546,23 +543,23 @@ HTML = """<!DOCTYPE html>
     .opponent-mini {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
+      gap: 8px;
+      padding: 6px 10px;
       border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px;
-      background: rgba(13, 17, 23, 0.3);
+      border-radius: 12px;
+      background: rgba(13, 17, 23, 0.2);
       min-height: auto !important;
     }
     .opponent-mini .info {
-      min-width: 70px;
+      min-width: 60px;
     }
     .opponent-mini .info .name {
-      font-weight: 700;
-      font-size: 13px;
+      font-weight: 600;
+      font-size: 12px;
       color: var(--gold);
     }
     .opponent-mini .info .score {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--muted);
     }
     .opponent-mini .opponent-hand {
@@ -570,8 +567,8 @@ HTML = """<!DOCTYPE html>
       min-height: auto;
     }
     .opponent-mini .back-card {
-      width: 36px;
-      height: 50px;
+      width: 28px;
+      height: 40px;
     }
     .ddz-played-area {
       border: 1px solid rgba(255,255,255,0.08);
