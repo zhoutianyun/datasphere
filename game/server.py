@@ -2186,8 +2186,8 @@ HTML = """<!DOCTYPE html>
 .victory-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; animation: fadeIn 0.5s ease; }
 .victory-overlay.show { display: flex; }
 
-.agent-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 9998; justify-content: center; align-items: center; flex-direction: column; }
-.agent-overlay.show { display: flex; }
+.agent-overlay { visibility: hidden; opacity: 0; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 9998; justify-content: center; align-items: center; flex-direction: column; transition: opacity 0.15s ease; will-change: opacity; transform: translateZ(0); }
+.agent-overlay.show { visibility: visible; opacity: 1; }
 .agent-modal { background: #1a1a2e; border: 2px solid #e94560; border-radius: 12px; padding: 24px; max-width: 480px; width: 90%; color: #eee; }
 .agent-modal h3 { color: #e94560; margin: 0 0 12px 0; font-size: 18px; }
 .agent-modal pre { background: #16213e; padding: 12px; border-radius: 8px; font-size: 13px; overflow-x: auto; margin: 8px 0; }
@@ -4155,12 +4155,14 @@ document.getElementById("agentBtn").addEventListener("click", function() {
     if (!overlay) return;
     var urlBox = document.getElementById("agentEndpointUrl");
     if (urlBox) urlBox.textContent = window.location.origin + "/api/agent/info";
+    if (appState.pollTimer) clearInterval(appState.pollTimer);
     overlay.classList.add("show");
 });
 
 function closeAgentModal() {
     var overlay = document.getElementById("agentOverlay");
     if (overlay) overlay.classList.remove("show");
+    if (appState.pollTimer) appState.pollTimer = setInterval(refreshState, 1000);
 }
 
 
@@ -4200,7 +4202,7 @@ function closeAgentModal() {
 
 
 
-    setInterval(refreshState, 1000);
+    appState.pollTimer = setInterval(refreshState, 1000);
 
 
 
