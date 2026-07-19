@@ -304,6 +304,32 @@ HTML = """<!DOCTYPE html>
       margin-bottom: 12px;
       white-space: pre-line;
     }
+    .ddz-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px 16px;
+      min-height: 600px;
+    }
+    .ddz-top-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .ddz-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 120px;
+    }
+    .ddz-hand-area {
+      margin-top: auto;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
     .table {
       display: grid;
       gap: 18px;
@@ -515,6 +541,81 @@ HTML = """<!DOCTYPE html>
     }
     .winner { color: var(--green); font-weight: 700; }
     .warn { color: var(--gold); font-weight: 700; }
+
+    /* Dou Di Zhu style - compact opponent display */
+    .opponent-mini {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      background: rgba(13, 17, 23, 0.3);
+      min-height: auto !important;
+    }
+    .opponent-mini .info {
+      min-width: 70px;
+    }
+    .opponent-mini .info .name {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--gold);
+    }
+    .opponent-mini .info .score {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .opponent-mini .opponent-hand {
+      flex: 0;
+      min-height: auto;
+    }
+    .opponent-mini .back-card {
+      width: 36px;
+      height: 50px;
+    }
+    .ddz-played-area {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 12px;
+      background: rgba(7, 11, 16, 0.25);
+      min-height: 80px;
+      text-align: center;
+    }
+    .ddz-played-area .title {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .ddz-played-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .ddz-played-card {
+      width: 90px;
+      min-height: 60px;
+      border-radius: 12px;
+      border: 1px solid rgba(224,177,90,0.2);
+      background: rgba(16,20,26,0.6);
+      padding: 8px;
+      text-align: center;
+      font-size: 12px;
+    }
+    .ddz-played-card .card-name { font-size: 14px; margin-bottom: 2px; }
+    .ddz-played-card .card-text { font-size: 10px; }
+    .ddz-played-card .who { font-size: 10px; color: var(--gold); margin-bottom: 4px; }
+    /* Full stats for current player */
+    .player.me .stats { display: flex; flex-wrap: wrap; }
+    .player.me .stats .badge { font-size: 13px; padding: 6px 10px; }
+    .player.me .hand .card { width: 140px; min-height: 190px; }
+    /* Own hand at bottom */
+    .player.me { margin-top: 8px; }
+    /* Sidebar compact */
+    .side .desc { font-size: 13px; }
+    .side .mini { padding: 8px 10px; }
+    .side .mini strong { font-size: 11px; }
+
     @media (max-width: 980px) {
       .app { grid-template-columns: 1fr; }
       .side { position: static; }
