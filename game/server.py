@@ -124,6 +124,13 @@ CARD_DEFS = {
         "desc": "所有对手失去 1 条线索。",
         "foot": "群体牌",
     },
+    "double_draw": {
+        "name": "连抽牌",
+        "rank": "2",
+        "suit": "♥",
+        "desc": "连续摸 2 张牌。",
+        "foot": "过牌牌",
+    },
 }
 
 DECK_POOL = [
@@ -645,6 +652,9 @@ HTML = """<!DOCTYPE html>
     function setSide(snapshot) {
       document.getElementById("meText").textContent = appState.playerName || "未加入房间";
       document.getElementById("roomText").textContent = appState.roomCode || "暂无";
+      if (document.getElementById("turnNum")) {
+        document.getElementById("turnNum").textContent = snapshot ? snapshot.turn_number || "0" : "0";
+      }
       if (!snapshot) {
         document.getElementById("stateText").textContent = "等待创建或加入房间";
         return;
@@ -1118,6 +1128,7 @@ def serialize_room(room: dict, viewer_id: str) -> dict:
         "log": room["log"],
         "pending_choice": pending_choice,
         "shared_deck_size": len(room.get("shared_deck", [])),
+        "turn_number": room.get("turn_number", 0),
         "shared_discard_size": len(room.get("shared_discard", [])),
         "winner_name": player_name(room, room["winner_id"]) if room["winner_id"] else "",
         "is_host": bool(viewer and viewer["is_host"]),
@@ -1211,6 +1222,9 @@ def ai_score_card(card: str, me: dict, room: dict) -> float:
         if can_open_now(me):
             return 1000 + my_score * 100
         return -80
+
+    if card == "double_draw":
+        return 230
 
     if card == "sabotage":
         opponents = [p for p in room["players"] if p["id"] != me["id"]]
@@ -1436,6 +1450,7 @@ def create_ai_game(name: str) -> tuple[str, str]:
         "code": code,
         "players": players,
         "status": "playing",
+        "turn_number": 0,
         "turns_left": 0,
         "current_player_id": human["id"],
         "log": "人机对战开始。轮到你先出牌。",
@@ -1453,6 +1468,7 @@ def create_room(name: str) -> tuple[str, str]:
         "code": code,
         "players": [host],
         "status": "waiting",
+        "turn_number": 0,
         "turns_left": 0,
         "current_player_id": host["id"],
         "log": "房间已创建，等待另外两位玩家加入。",
@@ -1497,6 +1513,7 @@ def start_game(code: str, player_id: str) -> None:
         raise ValueError("需要 3 位玩家才能开始")
     reset_players_for_game(room, room["players"])
     room["status"] = "playing"
+    room["turn_number"] = 0
     room["turns_left"] = 0
     room["current_player_id"] = room["players"][0]["id"]
     room["winner_id"] = None
@@ -1527,6 +1544,7 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
 
     card = player["hand"].pop(hand_index)
     record_played_card(room, player, card)
+    room["turn_number"] = room.get("turn_number", 0) + 1
 
     if card == "investigate":
         player["clues"] += 1
@@ -1586,6 +1604,14 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
             room["log"] = f"{player['name']} 打出【暗算牌】，{target['name']} 被随机弃掉 1 张手牌。"
         else:
             room["log"] = f"{player['name']} 打出【暗算牌】，但 {target['name']} 没有手牌。"
+        next_player(room)
+        finish_if_needed(room)
+        return
+
+    if card == "double_draw":
+        draw_card(room, player)
+        draw_card(room, player)
+        room["log"] = f"{player['name']} 打出【连抽牌】，连续摸 2 张牌。"
         next_player(room)
         finish_if_needed(room)
         return
