@@ -2223,7 +2223,7 @@ section { padding: 0; margin: 0; }
 .hand { gap: 3px !important; }
 .opponent-hand { min-height: 0 !important; height: 22px; overflow: hidden; }
 .back-card { width: 14px !important; height: 20px !important; border-radius: 3px !important; font-size: 6px; }
-.center-stage { min-height: 60px !important; padding: 6px 12px !important; border-radius: 12px !important; background: rgba(255,255,255,0.06) !important; max-height: none !important; overflow: visible; }
+.center-stage { min-height: 60px !important; padding: 6px 12px !important; border-radius: 12px !important; background: rgba(255,255,255,0.08) !important; max-height: none !important; overflow: visible; } .center-stage .played-card { min-height: 36px !important; max-height: 36px !important; width: 80px !important; display: inline-flex; align-items: center; overflow: hidden; } .center-stage .played-card .card-name { font-size: 10px !important; } .center-stage .played-card .card-text { font-size: 9px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .played-card { max-width: 100px !important; min-height: 45px !important; padding: 4px 10px !important; border-radius: 8px !important; }
 .played-card .card-name { font-size: 9px !important; margin-bottom: 0 !important; }
 .played-card .card-name { font-size: 11px !important; margin-bottom: 2px !important; } .played-card .card-text { font-size: 10px !important; display: block !important; }
@@ -2234,9 +2234,21 @@ section { padding: 0; margin: 0; }
 .card-name { font-size: 8px !important; }
 .card-text { font-size: 7px !important; display: none; }
 .card-foot { font-size: 8px !important; }
-.player.bottom { font-size: 78%; } .player.bottom .card { width: 45px !important; min-height: 48px !important; padding: 2px !important; } .player.bottom .card-name { font-size: 7px !important; } .player.bottom .card-text { font-size: 7px !important; } .player.bottom .card-top { font-size: 9px !important; } .player.bottom .badge { font-size: 8px !important; padding: 1px 3px !important; } .player.bottom .player-head h3 { font-size: 10px !important; } .player.bottom .card-top, .player.bottom .card-name, .player.bottom .card-text, .player.bottom .card-foot { padding: 1px 2px !important; }
+.player.bottom { font-size: 78%; } .player.bottom .card { width: 34px !important; min-height: 34px !important; padding: 1px !important; overflow: hidden !important; } .player.bottom .card-name { font-size: 7px !important; } .player.bottom .card-text { font-size: 7px !important; } .player.bottom .card-top { font-size: 9px !important; } .player.bottom .badge { font-size: 8px !important; padding: 1px 3px !important; } .player.bottom .player-head h3 { font-size: 10px !important; } .player.bottom .card-top, .player.bottom .card-name, .player.bottom .card-text, .player.bottom .card-foot { padding: 1px 2px !important; }
 .player.bottom .card-text { display: block; font-size: 8px !important; }
 .ghost { margin-top: 1px !important; padding: 1px 4px !important; font-size: 8px !important; }
+
+/* 🔥 Aggressive player card shrink */
+.player.bottom .card { width: 32px !important; height: 20px !important; min-height: 0 !important; padding: 0 !important; border-width: 1px !important; overflow: hidden !important; display: inline-flex !important; align-items: center; justify-content: center; }
+.player.bottom .card > div { display: flex !important; align-items: center; justify-content: center; gap: 1px; }
+.player.bottom .card-top { display: flex !important; font-size: 6px !important; padding: 0 !important; margin: 0 !important; gap: 1px; }
+.player.bottom .card-top .rank, .player.bottom .card-top .suit { font-size: 6px !important; padding: 0 !important; margin: 0 !important; line-height: 1; }
+.player.bottom .card-name, .player.bottom .card-text, .player.bottom .card-foot { display: none !important; }
+.player.bottom .hand { gap: 2px !important; padding: 0 !important; }
+/* Center stage cards */
+.center-stage .played-card { min-height: 34px !important; max-height: 34px !important; width: 80px !important; display: inline-flex !important; align-items: center; overflow: hidden; padding: 2px 6px !important; }
+.center-stage .played-card .card-name { font-size: 9px !important; margin: 0 !important; }
+.center-stage .played-card .card-text { font-size: 8px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 !important; }
 </style>
 
 
