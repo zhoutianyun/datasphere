@@ -1328,15 +1328,35 @@ def ai_resolve_target(room: dict, choice_type: str) -> str | None:
     return max(candidates, key=threat_score)["id"]
 
 
+def auto_skip_empty_hand(room: dict) -> bool:
+    """If current player has no cards, draw 1 and skip turn."""
+    if room["status"] != "playing":
+        return False
+    cur = next((p for p in room["players"] if p["id"] == room["current_player_id"]), None)
+    if cur and len(cur["hand"]) == 0:
+        draw_card(room, cur)
+        room["log"] = f"{cur['name']} 手牌为空，自动补 1 张牌并跳过回合。"
+        next_player(room)
+        finish_if_needed(room)
+        return True
+    return False
+
+
 def auto_play_ai_turns(code: str) -> None:
     room = ROOMS.get(code)
     if not room or room["status"] not in ("playing", "choosing_disrupt"):
         return
+    # Auto-skip AI with empty hand
+    auto_skip_empty_hand(room)
+    if room["status"] == "finished":
+        return
+
     max_loops = 30
     for _ in range(max_loops):
         if room["status"] not in ("playing", "choosing_disrupt"):
             break
         # Handle AI choices first
+        auto_skip_empty_hand(room)
         while room["pending_choice"] and room["status"] == "choosing_disrupt":
             target_id = ai_resolve_target(room, room["pending_choice"]["type"])
             if not target_id:
@@ -1823,6 +1843,7 @@ class Handler(BaseHTTPRequestHandler):
             with LOCK:
                 try:
                     room, _ = require_room_and_player(code, player_id)
+                    auto_skip_empty_hand(room)
                     payload = {"ok": True, "room": serialize_room(room, player_id)}
                 except ValueError as exc:
                     error(self, str(exc), 404)
