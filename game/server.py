@@ -541,34 +541,41 @@ HTML = """<!DOCTYPE html>
 
     /* Dou Di Zhu style - compact opponent display */
     .opponent-mini {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 6px 10px;
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
-      background: rgba(13, 17, 23, 0.2);
+      gap: 6px;
+      padding: 4px 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      background: rgba(13, 17, 23, 0.15);
       min-height: auto !important;
     }
     .opponent-mini .info {
-      min-width: 60px;
+      display: flex;
+      gap: 6px;
+      align-items: baseline;
+      min-width: auto;
     }
     .opponent-mini .info .name {
       font-weight: 600;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--gold);
+      white-space: nowrap;
     }
     .opponent-mini .info .score {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--muted);
+      white-space: nowrap;
     }
     .opponent-mini .opponent-hand {
       flex: 0;
       min-height: auto;
+      display: flex;
+      gap: 3px;
     }
     .opponent-mini .back-card {
-      width: 28px;
-      height: 40px;
+      width: 22px;
+      height: 32px;
     }
     .ddz-played-area {
       border: 1px solid rgba(255,255,255,0.08);
