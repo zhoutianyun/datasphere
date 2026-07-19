@@ -1096,43 +1096,15 @@ def record_played_card(room: dict, player: dict, card: str) -> None:
 
 
 def finish_if_needed(room: dict) -> None:
-  if room["status"] == "finished":
-    return
-
-  for player in room["players"]:
-    if player["score"] >= MAX_SCORE:
-      room["status"] = "finished"
-      room["winner_id"] = player["id"]
-      room["log"] = f"{player['name']} 率先达到 2 分，立即获胜。"
-      return
-
-  if room["turns_left"] > 0:
-    return
-
-  best_score = max(player["score"] for player in room["players"])
-  score_leaders = [p for p in room["players"] if p["score"] == best_score]
-  if len(score_leaders) == 1:
-    room["status"] = "finished"
-    room["winner_id"] = score_leaders[0]["id"]
-    room["log"] = f"12 回合结束后，{score_leaders[0]['name']} 以最高分获胜。"
-    return
-
-  best_resources = max(p["clues"] + p["keys"] for p in score_leaders)
-  resource_leaders = [p for p in score_leaders if p["clues"] + p["keys"] == best_resources]
-  if len(resource_leaders) == 1:
-    room["status"] = "finished"
-    room["winner_id"] = resource_leaders[0]["id"]
-    room["log"] = f"12 回合结束后，{resource_leaders[0]['name']} 同分但资源更高，获得胜利。"
-    return
-
-  room["status"] = "choosing_winner"
-  room["pending_choice"] = {
-    "type": "winner",
-    "prompt": "最终分数和资源都完全并列，必须由人决定胜者：",
-    "options": [p["id"] for p in resource_leaders],
-    "source_id": None,
-  }
-  room["log"] = "12 回合结束后仍然完全并列，必须停下来问人决定胜者。"
+    if room["status"] == "finished":
+        return
+    for player in room["players"]:
+        if player["score"] >= MAX_SCORE:
+            room["status"] = "finished"
+            room["winner_id"] = player["id"]
+            room["log"] = f"{player['name']} 率先达到 5 分，立即获胜！"
+            return
+    # No turn limit — game only ends when someone reaches MAX_SCORE
 
 
 def resource_pressure(player: dict) -> int:
