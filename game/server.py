@@ -3068,9 +3068,9 @@ ${snapshot.players.length}/3 人\
 
 
 
-          <div class="hand">${hiddenHand}</div>
-
           ${isMe && isCurrent && snapshot.status === "playing" ? '<button class="ghost" onclick="skipTurn()" style="margin-top:8px;font-size:12px">跳过</button>' : ""}
+
+          <div class="hand">${hiddenHand}</div>
 
 
 
@@ -3508,9 +3508,9 @@ ${snapshot.log}${winnerText}`;
 
 
 
-          <div class="hand">${visibleHand}</div>
-
           ${isMe && isCurrent && snapshot.status === "playing" ? '<button class="ghost" onclick="skipTurn()" style="margin-top:8px;font-size:12px">跳过</button>' : ""}
+
+          <div class="hand">${visibleHand}</div>
 
 
 
