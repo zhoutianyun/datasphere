@@ -2154,7 +2154,35 @@ HTML = """<!DOCTYPE html>
 
 
 
-  </style>
+  
+.victory-overlay {
+    display: none; position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    z-index: 9999;
+    justify-content: center; align-items: center;
+    flex-direction: column;
+    animation: fadeIn 0.5s ease;
+}
+.victory-overlay.show { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.victory-content {
+    text-align: center; color: #f4efe5;
+    padding: 30px; position: relative; z-index: 1;
+}
+.victory-trophy { font-size: 80px; animation: bounce 1s ease infinite; }
+@keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+.victory-title { font-size: 48px; font-weight: 700; color: #ffd700; margin: 10px 0; text-shadow: 0 0 30px rgba(255,215,0,0.5); }
+.victory-winner { font-size: 28px; color: #fff; margin: 10px 0 20px; }
+.victory-scores { display: flex; justify-content: center; gap: 16px; margin: 20px 0; }
+.victory-score-card { background: rgba(255,255,255,0.1); border-radius: 12px; padding: 15px 25px; min-width: 100px; }
+.victory-score-card .name { font-size: 14px; color: #c8c0b2; }
+.victory-score-card .score { font-size: 36px; font-weight: 700; color: #e0b15a; }
+.victory-score-card.winner .score { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+.victory-btn { margin-top: 20px; padding: 14px 40px; font-size: 18px; font-weight: 600; background: linear-gradient(135deg, #ffd700, #e0b15a); color: #0f1116; border: none; border-radius: 8px; cursor: pointer; transition: transform 0.2s; }
+.victory-btn:hover { transform: scale(1.05); }
+#confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10000; }
+</style>
 
 
 
@@ -2446,7 +2474,17 @@ HTML = """<!DOCTYPE html>
 
 
 
-    const appState = {
+    
+    // URL参数支持：通过 ?room=XXX&player=YYY 直接进入游戏
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomFromUrl = urlParams.get('room');
+    const playerFromUrl = urlParams.get('player');
+    const nameFromUrl = urlParams.get('name');
+    if (roomFromUrl) localStorage.setItem('roomCode', roomFromUrl);
+    if (playerFromUrl) localStorage.setItem('playerId', playerFromUrl);
+    if (nameFromUrl) localStorage.setItem('playerName', nameFromUrl);
+
+const appState = {
 
 
 
@@ -3056,6 +3094,7 @@ ${snapshot.log}${winnerText}`;
 
 
 
+      showVictoryIfFinished(snapshot);
     }
 
 
@@ -4126,11 +4165,68 @@ ${snapshot.log}${winnerText}`;
 
 
 
-  </script>
+  
+function showVictoryIfFinished(snapshot) {
+    if (snapshot.status !== "finished" || !snapshot.winner_name) return;
+    var overlay = document.getElementById("victoryOverlay");
+    if (!overlay || overlay.classList.contains("show")) return;
+    document.getElementById("victoryWinner").textContent = snapshot.winner_name;
+    var s = "";
+    for (var i = 0; i < snapshot.players.length; i++) {
+        var p = snapshot.players[i];
+        var cls = p.name === snapshot.winner_name ? " victory-score-card winner" : " victory-score-card";
+        s += "<div class="" + cls + ""><div class="name">" + p.name + "</div><div class="score">" + p.score + "</div></div>";
+    }
+    document.getElementById("victoryScores").innerHTML = s;
+    overlay.classList.add("show");
+    startConfetti();
+}
+function startConfetti() {
+    var canvas = document.getElementById("confetti-canvas");
+    if (!canvas) return;
+    var ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    var colors = ["#ffd700","#e0b15a","#ff6b6b","#82c78f","#81b7e7","#c084fc","#d97468"];
+    var pieces = [];
+    for (var i = 0; i < 200; i++) {
+        pieces.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            w: Math.random() * 10 + 5,
+            h: Math.random() * 6 + 3,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            speed: Math.random() * 3 + 1,
+            rot: Math.random() * 360,
+            rotSpd: Math.random() * 10 - 5
+        });
+    }
+    function anim() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        var alive = false;
+        for (var i = 0; i < pieces.length; i++) {
+            var p = pieces[i];
+            p.y += p.speed;
+            p.rot += p.rotSpd;
+            if (p.y < canvas.height + 20) {
+                alive = true;
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rot * Math.PI / 180);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                ctx.restore();
+            }
+        }
+        if (alive) requestAnimationFrame(anim);
+    }
+    anim();
+}
+</script>
 
 
 
-</body>
+<div id="victoryOverlay" class="victory-overlay"><canvas id="confetti-canvas"></canvas><div class="victory-content"><div class="victory-trophy">🏆</div><div class="victory-title">胜利！</div><div class="victory-winner" id="victoryWinner"></div><div class="victory-scores" id="victoryScores"></div><button class="victory-btn" onclick="location.reload()">再来一局</button></div></div></body>
 
 
 
