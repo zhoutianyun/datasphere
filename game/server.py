@@ -75,6 +75,34 @@ CARD_DEFS = {
         "desc": "会自动按当前局势变成最有用的效果。",
         "foot": "高随机牌",
     },
+    "trade": {
+        "name": "交易牌",
+        "rank": "9",
+        "suit": "♣",
+        "desc": "消耗 2 线索换 1 钥匙；或消耗 1 钥匙换 2 线索。",
+        "foot": "灵活牌",
+    },
+    "recycle": {
+        "name": "回收牌",
+        "rank": "8",
+        "suit": "♠",
+        "desc": "从弃牌堆拿 1 张牌回手（不摸牌）。",
+        "foot": "战术牌",
+    },
+    "freeze": {
+        "name": "冻结牌",
+        "rank": "7",
+        "suit": "♦",
+        "desc": "跳过下一名玩家的回合。",
+        "foot": "节奏牌",
+    },
+    "shield_break": {
+        "name": "护盾击碎",
+        "rank": "6",
+        "suit": "♥",
+        "desc": "目标对手失去 1 层护盾；若无护盾则失去 1 条线索。",
+        "foot": "破解牌",
+    },
 }
 
 DECK_POOL = [
@@ -97,6 +125,14 @@ DECK_POOL = [
     "shield",
     "wild",
     "wild",
+    "trade",
+    "trade",
+    "recycle",
+    "recycle",
+    "freeze",
+    "freeze",
+    "shield_break",
+    "shield_break",
 ]
 DECK_SIZE = 40
 HAND_SIZE = 4
@@ -1081,6 +1117,9 @@ def next_player(room: dict) -> None:
     ids = [player["id"] for player in room["players"]]
     idx = ids.index(room["current_player_id"])
     room["current_player_id"] = ids[(idx + 1) % len(ids)]
+    if room.get("skip_next"):
+        room["skip_next"] = False
+        next_player(room)
 
 
 def absorb_shield(player: dict) -> bool:
@@ -1145,6 +1184,27 @@ def ai_score_card(card: str, me: dict, room: dict) -> float:
         if can_open_now(me):
             return 1000 + my_score * 100
         return -80
+
+    if card == "trade":
+        if my_clues >= 2:
+            return 310
+        if my_keys >= 1:
+            return 250
+        return -50
+
+    if card == "recycle":
+        return 280
+
+    if card == "freeze":
+        return 320
+
+    if card == "shield_break":
+        opponents = [p for p in room["players"] if p["id"] != me["id"]]
+        max_sh = max((p.get("shield", 0) for p in opponents), default=0)
+        if max_sh > 0:
+            return 400
+        max_cl = max((p["clues"] for p in opponents), default=0)
+        return 250 if max_cl > 0 else -30
 
     if card == "wild":
         if my_clues >= 1 and my_keys >= 1:
@@ -1223,6 +1283,8 @@ def ai_resolve_target(room: dict, choice_type: str) -> str | None:
         return None
     if choice_type == "winner":
         return max(candidates, key=lambda p: (int(p["score"]), resource_pressure(p)))["id"]
+    if choice_type == "shield_break":
+        return max(candidates, key=lambda p: (int(p.get("shield", 0)) * 10 + threat_score(p)))["id"]
     return max(candidates, key=threat_score)["id"]
 
 
@@ -1254,6 +1316,15 @@ def auto_play_ai_turns(code: str) -> None:
                 if target["keys"] > 0:
                     target["keys"] -= 1
                 room["log"] = f"(AI 自动选择) {player_name(room, target_id)} 被夺走 1 把钥匙。"
+                next_player(room)
+                finish_if_needed(room)
+            elif pending["type"] == "shield_break":
+                if target["shield"] > 0:
+                    target["shield"] -= 1
+                    room["log"] = f"(AI 自动选择) {player_name(room, target_id)} 被击碎 1 层护盾。"
+                else:
+                    target["clues"] = max(0, target["clues"] - 1)
+                    room["log"] = f"(AI 自动选择) {player_name(room, target_id)} 失去 1 条线索。"
                 next_player(room)
                 finish_if_needed(room)
             else:
@@ -1442,6 +1513,81 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
         finish_if_needed(room)
         return
 
+    if card == "trade":
+        if player["clues"] >= 2:
+            player["clues"] -= 2
+            player["keys"] += 1
+            room["log"] = f"{player['name']} 打出【交易牌】，消耗 2 条线索换来 1 把钥匙。"
+        elif player["keys"] >= 1:
+            player["keys"] -= 1
+            player["clues"] += 2
+            room["log"] = f"{player['name']} 打出【交易牌】，消耗 1 把钥匙换来 2 条线索。"
+        else:
+            room["log"] = f"{player['name']} 打出【交易牌】，但资源不足以交易，本回合浪费。"
+        draw_card(room, player)
+        next_player(room)
+        finish_if_needed(room)
+        return
+
+    if card == "recycle":
+        # Take 1 random non-recycle card from shared discard
+        recycled = None
+        for i in range(len(room["shared_discard"]) - 1, -1, -1):
+            if room["shared_discard"][i] != "recycle":
+                recycled = room["shared_discard"].pop(i)
+                break
+        if recycled:
+            player["hand"].append(recycled)
+            room["log"] = f"{player['name']} 打出【回收牌】，从弃牌堆回收了 1 张牌。"
+        else:
+            room["log"] = f"{player['name']} 打出【回收牌】，但弃牌堆没有可回收的牌。"
+        next_player(room)
+        finish_if_needed(room)
+        return
+
+    if card == "freeze":
+        room["skip_next"] = True
+        draw_card(room, player)
+        room["log"] = f"{player['name']} 打出【冻结牌】，下一名玩家的回合将被跳过。"
+        next_player(room)
+        finish_if_needed(room)
+        return
+
+    if card == "shield_break":
+        opponents = [p for p in room["players"] if p["id"] != player_id]
+        max_shield = max(p["shield"] for p in opponents)
+        if max_shield > 0:
+            targets = [p for p in opponents if p["shield"] == max_shield]
+        else:
+            max_clues = max(p["clues"] for p in opponents)
+            targets = [p for p in opponents if p["clues"] == max_clues] if max_clues > 0 else []
+        if not targets:
+            draw_card(room, player)
+            room["log"] = f"{player['name']} 打出【护盾击碎】，但没有可攻击的目标。"
+            next_player(room)
+            finish_if_needed(room)
+            return
+        draw_card(room, player)
+        if len(targets) == 1:
+            if targets[0]["shield"] > 0:
+                targets[0]["shield"] -= 1
+                room["log"] = f"{player['name']} 打出【护盾击碎】，{targets[0]['name']} 失去 1 层护盾。"
+            else:
+                targets[0]["clues"] = max(0, targets[0]["clues"] - 1)
+                room["log"] = f"{player['name']} 打出【护盾击碎】，{targets[0]['name']} 失去 1 条线索。"
+            next_player(room)
+            finish_if_needed(room)
+            return
+        room["status"] = "choosing_disrupt"
+        room["pending_choice"] = {
+            "type": "shield_break",
+            "prompt": "多名对手的护盾（或线索）并列最高，请选择目标：",
+            "options": [p["id"] for p in targets],
+            "source_id": player_id,
+        }
+        room["log"] = f"{player['name']} 打出【护盾击碎】，但目标并列，必须停下来问人。"
+        return
+
     if card == "wild":
         if player["clues"] >= 1 and player["keys"] >= 1:
             player["clues"] -= 1
@@ -1454,12 +1600,6 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
         else:
             player["keys"] += 1
             room["log"] = f"{player['name']} 打出【万用牌】，当前最缺钥匙，因此获得 1 把钥匙。"
-        draw_card(room, player)
-        next_player(room)
-        finish_if_needed(room)
-        return
-
-    if card == "disrupt":
         opponents = [p for p in room["players"] if p["id"] != player_id]
         max_clues = max(p["clues"] for p in opponents)
         if max_clues <= 0:
@@ -1564,6 +1704,20 @@ def resolve_choice(code: str, player_id: str, target_id: str) -> None:
         return
 
     # After human resolves a choice, auto-play for AI if needed
+    if pending["type"] == "shield_break":
+        target = next(p for p in room["players"] if p["id"] == target_id)
+        room["status"] = "playing"
+        room["pending_choice"] = None
+        if target["shield"] > 0:
+            target["shield"] -= 1
+            room["log"] = f"人类指定后，{target['name']} 被击碎 1 层护盾。"
+        else:
+            target["clues"] = max(0, target["clues"] - 1)
+            room["log"] = f"人类指定后，{target['name']} 被击碎护盾失败，失去 1 条线索。"
+        next_player(room)
+        finish_if_needed(room)
+        return
+
     if pending["type"] == "winner":
         room["status"] = "finished"
         room["pending_choice"] = None
