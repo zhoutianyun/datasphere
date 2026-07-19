@@ -3923,6 +3923,7 @@ class Handler(BaseHTTPRequestHandler):
                     next_player(room)
 
                     finish_if_needed(room)
+                    auto_play_ai_turns(code)
 
                     json_response(self, 200, {"ok": True})
 
