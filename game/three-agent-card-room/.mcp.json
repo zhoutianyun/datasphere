@@ -1,9 +1,0 @@
-﻿{
-  "mcpServers": {
-    "three-agent-card-room": {
-      "command": "D:\\Miniconda\\python.exe",
-      "args": ["mcp_server.py"],
-      "cwd": "."
-    }
-  }
-}
