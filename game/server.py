@@ -2214,7 +2214,7 @@ section { padding: 0; margin: 0; }
 .complementary h1 { font-size: 11px !important; margin: 0 !important; }
 .complementary strong, .complementary .generic { font-size: 9px !important; }
 .player { padding: 3px 6px !important; border-radius: 8px !important; }
-.player.opponent { min-height: 0 !important; max-height: 80px; overflow: hidden; }
+.player.opponent { min-height: 40px !important; max-height: 80px; overflow: hidden; }
 .player-head { gap: 2px !important; margin-bottom: 1px !important; }
 .player-head h3 { font-size: 11px !important; margin: 0; line-height: 1.2; }
 .player-head span { font-size: 9px !important; }
@@ -2246,9 +2246,9 @@ section { padding: 0; margin: 0; }
 .player.bottom .card-text { display: block !important; font-size: 6.5px !important; line-height: 1.1 !important; padding: 0 !important; margin: 1px 2px !important; }
 .player.bottom .card-foot { display: block !important; font-size: 6px !important; padding: 0 !important; margin-top: auto !important; opacity: 0.7; }
 .player.bottom .hand { min-height: 140px !important; gap: 2px !important; padding: 2px 0 !important; }
-.center-stage { min-height: 140px !important; max-height: 140px !important; overflow-y: auto; }
-.center-stage .played-card { min-height: 36px !important; max-height: 36px !important; width: 80px !important; display: inline-flex !important; align-items: center; overflow: hidden; padding: 2px 6px !important; }
-.center-stage .played-card .card-name { font-size: 9px !important; margin: 0 !important; }
+.center-stage { min-height: 240px !important; max-height: none !important; overflow-y: auto; }
+.center-stage .played-card { min-height: 80px !important; max-height: none !important; width: 110px !important; display: flex !important; flex-direction: column; align-items: center; overflow: visible; padding: 4px 8px !important; }
+.center-stage .played-card .card-name { font-size: 10px !important; margin: 2px 0 !important; } .center-stage .played-card .card-text { font-size: 9px !important; white-space: normal !important; line-height: 1.2 !important; display: block !important; } .center-stage .played-card .card-foot { font-size: 8px !important; margin-top: auto !important; opacity: 0.7; }
 </style>
 
 
