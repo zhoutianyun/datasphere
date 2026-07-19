@@ -14,8 +14,8 @@ from urllib.parse import parse_qs, urlparse
 
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
-MAX_TURNS = 12
-MAX_SCORE = 2
+MAX_TURNS = 18
+MAX_SCORE = 3
 ROOM_SIZE = 3
 
 CARD_DEFS = {
