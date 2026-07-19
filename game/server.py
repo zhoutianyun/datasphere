@@ -2492,20 +2492,12 @@ HTML = """<!DOCTYPE html>
 
 
     
-    // URL参数支持：通过 ?room=XXX&player=YYY 直接进入游戏
-    const urlParams = new URLSearchParams(window.location.search);
-    const roomFromUrl = urlParams.get('room');
-    const playerFromUrl = urlParams.get('player');
-    const nameFromUrl = urlParams.get('name');
-    if (roomFromUrl) localStorage.setItem('roomCode', roomFromUrl);
-    if (playerFromUrl) localStorage.setItem('playerId', playerFromUrl);
-    if (nameFromUrl) localStorage.setItem('playerName', nameFromUrl);
 
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const roomFromUrl = urlParams.get('room');
-    const playerFromUrl = urlParams.get('player');
-    const nameFromUrl = urlParams.get('name');
+    var urlParams = new URLSearchParams(window.location.search);
+    var roomFromUrl = urlParams.get('room');
+    var playerFromUrl = urlParams.get('player');
+    var nameFromUrl = urlParams.get('name');
     if (roomFromUrl) { localStorage.setItem('roomCode', roomFromUrl); }
     if (playerFromUrl) { localStorage.setItem('playerId', playerFromUrl); }
     if (nameFromUrl) { localStorage.setItem('playerName', nameFromUrl); }
@@ -4065,78 +4057,6 @@ ${snapshot.log}${winnerText}`;
 
 
 
-    async function skipTurn() {
-
-
-
-      try {
-
-
-
-        await api("/api/skip_turn", "POST", {
-
-
-
-          room_code: appState.roomCode,
-
-
-
-          player_id: appState.playerId
-
-
-
-        });
-
-
-
-        refreshState();
-
-
-
-      } catch (error) {
-
-
-
-        logText.textContent = error.message;
-
-
-
-      }
-
-
-
-    }
-
-
-
-
-
-
-
-    async function skipTurn() {
-
-      try {
-
-        await api("/api/skip_turn", "POST", {
-
-          room_code: appState.roomCode,
-
-          player_id: appState.playerId
-
-        });
-
-        refreshState();
-
-      } catch (error) {
-
-        logText.textContent = error.message;
-
-      }
-
-    }
-
-
-
     function leaveRoom() {
 
 
@@ -4194,63 +4114,6 @@ ${snapshot.log}${winnerText}`;
 
 
   
-function showVictoryIfFinished(snapshot) {
-    if (snapshot.status !== "finished" || !snapshot.winner_name) return;
-    var overlay = document.getElementById("victoryOverlay");
-    if (!overlay || overlay.classList.contains("show")) return;
-    document.getElementById("victoryWinner").textContent = snapshot.winner_name;
-    var s = "";
-    for (var i = 0; i < snapshot.players.length; i++) {
-        var p = snapshot.players[i];
-        var cls = p.name === snapshot.winner_name ? " victory-score-card winner" : " victory-score-card";
-        s += "<div class="" + cls + ""><div class="name">" + p.name + "</div><div class="score">" + p.score + "</div></div>";
-    }
-    document.getElementById("victoryScores").innerHTML = s;
-    overlay.classList.add("show");
-    startConfetti();
-}
-function startConfetti() {
-    var canvas = document.getElementById("confetti-canvas");
-    if (!canvas) return;
-    var ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    var colors = ["#ffd700","#e0b15a","#ff6b6b","#82c78f","#81b7e7","#c084fc","#d97468"];
-    var pieces = [];
-    for (var i = 0; i < 200; i++) {
-        pieces.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height - canvas.height,
-            w: Math.random() * 10 + 5,
-            h: Math.random() * 6 + 3,
-            color: colors[Math.floor(Math.random() * colors.length)],
-            speed: Math.random() * 3 + 1,
-            rot: Math.random() * 360,
-            rotSpd: Math.random() * 10 - 5
-        });
-    }
-    function anim() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        var alive = false;
-        for (var i = 0; i < pieces.length; i++) {
-            var p = pieces[i];
-            p.y += p.speed;
-            p.rot += p.rotSpd;
-            if (p.y < canvas.height + 20) {
-                alive = true;
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.rotate(p.rot * Math.PI / 180);
-                ctx.fillStyle = p.color;
-                ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
-                ctx.restore();
-            }
-        }
-        if (alive) requestAnimationFrame(anim);
-    }
-    anim();
-}
-
 function showVictoryIfFinished(snapshot) {
     if (snapshot.status !== "finished" || !snapshot.winner_name) { return; }
     var overlay = document.getElementById("victoryOverlay");
