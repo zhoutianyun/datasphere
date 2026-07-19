@@ -2201,7 +2201,7 @@ HTML = """<!DOCTYPE html>
 #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10000; }
 
 /* ===== RESPONSIVE LAYOUT: fit in viewport without scrolling ===== */
-html, body { height: 100%; overflow: hidden !important; margin: 0; }
+html, body { height: 100%; overflow: hidden !important; margin: 0; padding: 0 !important; }
 .app { height: 100vh !important; max-height: 100vh; min-height: 0 !important; overflow: hidden !important; padding: 2px 4px !important; }
 main { padding: 0 !important; margin: 0 !important; overflow: hidden; display: flex; flex-direction: column; }
 section { padding: 0; margin: 0; }
