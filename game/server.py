@@ -103,6 +103,27 @@ CARD_DEFS = {
         "desc": "目标对手失去 1 层护盾；若无护盾则失去 1 条线索。",
         "foot": "破解牌",
     },
+    "sabotage": {
+        "name": "暗算牌",
+        "rank": "5",
+        "suit": "♠",
+        "desc": "手牌最多的对手随机弃 1 张手牌。",
+        "foot": "破坏牌",
+    },
+    "inspiration": {
+        "name": "灵感牌",
+        "rank": "4",
+        "suit": "♦",
+        "desc": "获得 2 条线索和 1 把钥匙。",
+        "foot": "爆发牌",
+    },
+    "fog": {
+        "name": "迷雾牌",
+        "rank": "3",
+        "suit": "♣",
+        "desc": "所有对手失去 1 条线索。",
+        "foot": "群体牌",
+    },
 }
 
 DECK_POOL = [
@@ -133,6 +154,12 @@ DECK_POOL = [
     "freeze",
     "shield_break",
     "shield_break",
+    "sabotage",
+    "sabotage",
+    "inspiration",
+    "inspiration",
+    "fog",
+    "fog",
 ]
 DECK_SIZE = 40
 HAND_SIZE = 4
@@ -1185,6 +1212,19 @@ def ai_score_card(card: str, me: dict, room: dict) -> float:
             return 1000 + my_score * 100
         return -80
 
+    if card == "sabotage":
+        opponents = [p for p in room["players"] if p["id"] != me["id"]]
+        max_hand = max((len(p["hand"]) for p in opponents), default=0)
+        return 290 if max_hand > 0 else -20
+
+    if card == "inspiration":
+        return 420
+
+    if card == "fog":
+        opponents = [p for p in room["players"] if p["id"] != me["id"]]
+        max_cl = max((p["clues"] for p in opponents), default=0)
+        return 330 if max_cl > 0 else -15
+
     if card == "trade":
         if my_clues >= 2:
             return 310
@@ -1509,6 +1549,47 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
         else:
             room["log"] = f"{player['name']} 打出【开箱牌】，但资源不足，开箱失败。"
         draw_card(room, player)
+        next_player(room)
+        finish_if_needed(room)
+        return
+
+    if card == "sabotage":
+        opponents = [p for p in room["players"] if p["id"] != player_id]
+        max_hand = max(len(p["hand"]) for p in opponents)
+        targets = [p for p in opponents if len(p["hand"]) == max_hand]
+        target = max(targets, key=lambda p: p["score"])
+        draw_card(room, player)
+        if target["hand"]:
+            idx = random.randrange(len(target["hand"]))
+            discarded = target["hand"].pop(idx)
+            room["shared_discard"].append(discarded)
+            room["log"] = f"{player['name']} 打出【暗算牌】，{target['name']} 被随机弃掉 1 张手牌。"
+        else:
+            room["log"] = f"{player['name']} 打出【暗算牌】，但 {target['name']} 没有手牌。"
+        next_player(room)
+        finish_if_needed(room)
+        return
+
+    if card == "inspiration":
+        player["clues"] += 2
+        player["keys"] += 1
+        draw_card(room, player)
+        room["log"] = f"{player['name']} 打出【灵感牌】，获得 2 条线索和 1 把钥匙。"
+        next_player(room)
+        finish_if_needed(room)
+        return
+
+    if card == "fog":
+        affected = False
+        for p in room["players"]:
+            if p["id"] != player_id and p["clues"] > 0:
+                p["clues"] -= 1
+                affected = True
+        draw_card(room, player)
+        if affected:
+            room["log"] = f"{player['name']} 打出【迷雾牌】，所有对手失去 1 条线索。"
+        else:
+            room["log"] = f"{player['name']} 打出【迷雾牌】，但所有对手都没有线索。"
         next_player(room)
         finish_if_needed(room)
         return
