@@ -489,7 +489,7 @@ HTML = """<!DOCTYPE html>
     <main class="shell">
       <section class="main-top">
         <h2>联机说明</h2>
-        <p>房主先创建房间，其他玩家输入房间号加入。满 3 人后会自动开始。每位玩家只操作自己的手牌。</p>
+        <p>房主先创建房间，其他玩家输入房间号加入。满 3 人后会自动开始。选择"人机对打"可直接与 AI 对手开局。</p>
       </section>
 
       <section class="section" id="joinView">
@@ -498,7 +498,8 @@ HTML = """<!DOCTYPE html>
           <input id="nameInput" placeholder="输入你的名字，例如 Agent 1">
         </div>
         <div class="row">
-          <button class="primary" id="createBtn">创建房间</button>
+          <button class="primary" id="createBtn" style="flex:1">创建房间</button>
+          <button class="primary" id="aiBtn" style="flex:1">人机对打</button>
         </div>
         <div class="row">
           <input id="roomInput" placeholder="输入房间号加入，例如 A1B2C">
@@ -646,7 +647,7 @@ HTML = """<!DOCTYPE html>
         section.className = "player";
         section.innerHTML = `
           <div class="player-head">
-            <h3>${player.name}${isMe ? "（你）" : ""}</h3>
+            <h3>${player.name}${isMe ? "（你）" : ""}${player.is_ai ? "（AI）" : ""}</h3>
             <span>${isCurrent ? "当前出牌者" : ""}</span>
           </div>
           <div class="stats">
@@ -745,7 +746,7 @@ HTML = """<!DOCTYPE html>
         section.className = `player ${isMe ? "me" : "opponent"} ${seatClasses[index] || ""}`;
         section.innerHTML = `
           <div class="player-head">
-            <h3>${player.name}${isMe ? "（你）" : ""}</h3>
+            <h3>${player.name}${isMe ? "（你）" : ""}${player.is_ai ? "（AI）" : ""}</h3>
             <span>${isCurrent ? "当前出牌者" : ""}</span>
           </div>
           <div class="stats">
@@ -830,6 +831,21 @@ HTML = """<!DOCTYPE html>
       }
     }
 
+    async function createAIGame() {
+      try {
+        const name = document.getElementById("nameInput").value.trim();
+        if (!name) throw new Error("请先输入你的名字");
+        appState.playerName = name;
+        const data = await api("/api/create_ai_game", "POST", { name });
+        appState.roomCode = data.room_code;
+        appState.playerId = data.player_id;
+        saveIdentity();
+        refreshState();
+      } catch (error) {
+        joinStatus.textContent = error.message;
+      }
+    }
+
     async function createRoom() {
       try {
         const name = document.getElementById("nameInput").value.trim();
@@ -894,6 +910,7 @@ HTML = """<!DOCTYPE html>
     }
 
     document.getElementById("createBtn").addEventListener("click", createRoom);
+    document.getElementById("aiBtn").addEventListener("click", createAIGame);
     document.getElementById("joinBtn").addEventListener("click", joinRoom);
     document.getElementById("refreshBtn").addEventListener("click", refreshState);
     document.getElementById("leaveBtn").addEventListener("click", leaveRoom);
@@ -953,6 +970,7 @@ def make_player(name: str, is_host: bool = False) -> dict:
         "id": secrets.token_hex(8),
         "name": name,
         "is_host": is_host,
+        "is_ai": False,
         "score": 0,
         "clues": 0,
         "keys": 0,
@@ -992,6 +1010,7 @@ def serialize_room(room: dict, viewer_id: str) -> dict:
                 "hand": list(player["hand"]) if player["id"] == viewer_id else [],
                 "last_played": player["last_played"],
                 "is_host": player["is_host"],
+                "is_ai": player.get("is_ai", False),
             }
         )
 
@@ -1055,44 +1074,252 @@ def record_played_card(player: dict, card: str) -> None:
 
 
 def finish_if_needed(room: dict) -> None:
-    if room["status"] == "finished":
-        return
+  if room["status"] == "finished":
+    return
 
-    for player in room["players"]:
-        if player["score"] >= MAX_SCORE:
-            room["status"] = "finished"
-            room["winner_id"] = player["id"]
-            room["log"] = f"{player['name']} 率先达到 2 分，立即获胜。"
+  for player in room["players"]:
+    if player["score"] >= MAX_SCORE:
+      room["status"] = "finished"
+      room["winner_id"] = player["id"]
+      room["log"] = f"{player['name']} 率先达到 2 分，立即获胜。"
+      return
+
+  if room["turns_left"] > 0:
+    return
+
+  best_score = max(player["score"] for player in room["players"])
+  score_leaders = [p for p in room["players"] if p["score"] == best_score]
+  if len(score_leaders) == 1:
+    room["status"] = "finished"
+    room["winner_id"] = score_leaders[0]["id"]
+    room["log"] = f"12 回合结束后，{score_leaders[0]['name']} 以最高分获胜。"
+    return
+
+  best_resources = max(p["clues"] + p["keys"] for p in score_leaders)
+  resource_leaders = [p for p in score_leaders if p["clues"] + p["keys"] == best_resources]
+  if len(resource_leaders) == 1:
+    room["status"] = "finished"
+    room["winner_id"] = resource_leaders[0]["id"]
+    room["log"] = f"12 回合结束后，{resource_leaders[0]['name']} 同分但资源更高，获得胜利。"
+    return
+
+  room["status"] = "choosing_winner"
+  room["pending_choice"] = {
+    "type": "winner",
+    "prompt": "最终分数和资源都完全并列，必须由人决定胜者：",
+    "options": [p["id"] for p in resource_leaders],
+    "source_id": None,
+  }
+  room["log"] = "12 回合结束后仍然完全并列，必须停下来问人决定胜者。"
+
+
+def resource_pressure(player: dict) -> int:
+    return int(player["clues"]) * 2 + int(player["keys"]) * 3 + int(player.get("shield", 0))
+
+
+def can_open_now(player: dict) -> bool:
+    return int(player["clues"]) >= 2 and int(player["keys"]) >= 1
+
+
+def threat_score(player: dict) -> int:
+    score = int(player["score"]) * 100
+    if can_open_now(player):
+        score += 60
+    score += resource_pressure(player)
+    return score
+
+
+def best_opponent_targets(room: dict, me_id: str, metric: str) -> list[dict]:
+    opponents = [p for p in room["players"] if p["id"] != me_id]
+    max_value = max(int(p[metric]) for p in opponents)
+    if max_value <= 0:
+        return []
+    return [p for p in opponents if int(p[metric]) == max_value]
+
+
+def ai_score_card(card: str, me: dict, room: dict) -> float:
+    my_score = int(me["score"])
+    my_clues = int(me["clues"])
+    my_keys = int(me["keys"])
+    my_shield = int(me.get("shield", 0))
+    turns_left = int(room["turns_left"])
+    opponents = [p for p in room["players"] if p["id"] != me["id"]]
+    leading_threat = max((threat_score(p) for p in opponents), default=0)
+    someone_can_open = any(can_open_now(p) for p in opponents)
+
+    if card == "open":
+        if can_open_now(me):
+            return 1000 + my_score * 100
+        return -80
+
+    if card == "wild":
+        if my_clues >= 1 and my_keys >= 1:
+            return 930 + my_score * 100
+        if my_clues < 2:
+            return 330 if turns_left > 2 else 260
+        if my_keys < 1:
+            return 350 if turns_left > 2 else 280
+        return 210
+
+    if card == "steal_key":
+        targets = best_opponent_targets(room, me["id"], "keys")
+        if not targets:
+            return -40
+        target = max(targets, key=threat_score)
+        base = 420 if can_open_now(target) else 280
+        if int(target.get("shield", 0)) > 0:
+            base -= 90
+        return base + threat_score(target) / 10
+
+    if card == "disrupt":
+        targets = best_opponent_targets(room, me["id"], "clues")
+        if not targets:
+            return -35
+        target = max(targets, key=threat_score)
+        base = 410 if can_open_now(target) or someone_can_open else 240
+        if int(target.get("shield", 0)) > 0:
+            base -= 85
+        return base + threat_score(target) / 12
+
+    if card == "shield":
+        if my_shield > 0:
+            return 70
+        if someone_can_open or leading_threat >= 70:
+            return 300
+        return 180
+
+    if card == "double_investigate":
+        if my_clues < 2:
+            return 360
+        if my_keys < 1:
+            return 220
+        return 150
+
+    if card == "investigate":
+        if my_clues < 2:
+            return 260
+        if my_keys < 1:
+            return 130
+        return 90
+
+    if card == "key":
+        if my_keys < 1:
+            return 320
+        if my_clues >= 2:
+            return 250
+        return 140
+
+    return 0
+
+
+def ai_choose_card(room: dict, player: dict) -> int:
+    hand = list(player["hand"])
+    scored = [(idx, ai_score_card(card, player, room)) for idx, card in enumerate(hand)]
+    scored.sort(key=lambda item: item[1], reverse=True)
+    return scored[0][0]
+
+
+def ai_resolve_target(room: dict, choice_type: str) -> str | None:
+    pending = room["pending_choice"]
+    if not pending or not pending["options"]:
+        return None
+    option_ids = pending["options"]
+    candidates = [p for p in room["players"] if p["id"] in option_ids]
+    if not candidates:
+        return None
+    if choice_type == "winner":
+        return max(candidates, key=lambda p: (int(p["score"]), resource_pressure(p)))["id"]
+    return max(candidates, key=threat_score)["id"]
+
+
+def auto_play_ai_turns(code: str) -> None:
+    room = ROOMS.get(code)
+    if not room or room["status"] not in ("playing", "choosing_disrupt"):
+        return
+    max_loops = 30
+    for _ in range(max_loops):
+        if room["status"] not in ("playing", "choosing_disrupt"):
+            break
+        # Handle AI choices first
+        while room["pending_choice"] and room["status"] == "choosing_disrupt":
+            target_id = ai_resolve_target(room, room["pending_choice"]["type"])
+            if not target_id:
+                break
+            # Resolve choice for AI
+            pending = room["pending_choice"]
+            target = next(p for p in room["players"] if p["id"] == target_id)
+            room["status"] = "playing"
+            room["pending_choice"] = None
+            if pending["type"] == "disrupt":
+                if target["clues"] > 0:
+                    target["clues"] -= 1
+                room["log"] = f"(AI 自动选择) {player_name(room, target_id)} 被干扰失去 1 条线索。"
+                next_player(room)
+                finish_if_needed(room)
+            elif pending["type"] == "steal_key":
+                if target["keys"] > 0:
+                    target["keys"] -= 1
+                room["log"] = f"(AI 自动选择) {player_name(room, target_id)} 被夺走 1 把钥匙。"
+                next_player(room)
+                finish_if_needed(room)
+            else:
+                break
+            if room["status"] == "finished":
+                return
+
+        # Check if current player is AI
+        cur = next((p for p in room["players"] if p["id"] == room["current_player_id"]), None)
+        if not cur or not cur.get("is_ai"):
+            break
+        if room["status"] != "playing":
+            break
+
+        card_idx = ai_choose_card(room, cur)
+        card_name = cur["hand"][card_idx]
+        
+        # Reuse play_card logic directly
+        try:
+            # Status is already "playing" for AI auto-play
+            # Back up current player for play_card
+            old_id = room["current_player_id"]
+            play_card(code, cur["id"], card_idx)
+            # AI log set by play_card【{card_name}】。"
+        except ValueError:
+            room["current_player_id"] = old_id
+            break
+        
+        if room["status"] == "finished":
             return
 
-    if room["turns_left"] > 0:
-        return
 
-    best_score = max(player["score"] for player in room["players"])
-    score_leaders = [p for p in room["players"] if p["score"] == best_score]
-    if len(score_leaders) == 1:
-        room["status"] = "finished"
-        room["winner_id"] = score_leaders[0]["id"]
-        room["log"] = f"12 回合结束后，{score_leaders[0]['name']} 以最高分获胜。"
-        return
+def auto_play_needed(room: dict) -> bool:
+    if room["status"] != "playing":
+        return False
+    cur = next((p for p in room["players"] if p["id"] == room["current_player_id"]), None)
+    return bool(cur and cur.get("is_ai"))
 
-    best_resources = max(p["clues"] + p["keys"] for p in score_leaders)
-    resource_leaders = [p for p in score_leaders if p["clues"] + p["keys"] == best_resources]
-    if len(resource_leaders) == 1:
-        room["status"] = "finished"
-        room["winner_id"] = resource_leaders[0]["id"]
-        room["log"] = f"12 回合结束后，{resource_leaders[0]['name']} 同分但资源更高，获得胜利。"
-        return
 
-    room["status"] = "choosing_winner"
-    room["pending_choice"] = {
-        "type": "winner",
-        "prompt": "最终分数和资源都完全并列，必须由人决定胜者：",
-        "options": [p["id"] for p in resource_leaders],
-        "source_id": None,
+def create_ai_game(name: str) -> tuple[str, str]:
+    code = room_code()
+    human = make_player(name, is_host=True)
+    ai_1 = make_player("AI 对手 1")
+    ai_1["is_ai"] = True
+    ai_2 = make_player("AI 对手 2")
+    ai_2["is_ai"] = True
+    players = [human, ai_1, ai_2]
+    reset_players_for_game(players)
+    room = {
+        "code": code,
+        "players": players,
+        "status": "playing",
+        "turns_left": MAX_TURNS,
+        "current_player_id": human["id"],
+        "log": "人机对战开始。轮到你先出牌。",
+        "pending_choice": None,
+        "winner_id": None,
     }
-    room["log"] = "12 回合结束后仍然完全并列，必须停下来问人决定胜者。"
-
+    ROOMS[code] = room
+    return code, human["id"]
 
 def create_room(name: str) -> tuple[str, str]:
     code = room_code()
@@ -1304,6 +1531,9 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
         room["log"] = f"{player['name']} 打出【顺手牵钥】，但目标并列，必须停下来问人决定抢谁。"
         return
 
+        if room["status"] == "playing" and auto_play_needed(room):
+            auto_play_ai_turns(code)
+            return
 
 def resolve_choice(code: str, player_id: str, target_id: str) -> None:
     room, _ = require_room_and_player(code, player_id)
@@ -1343,6 +1573,10 @@ def resolve_choice(code: str, player_id: str, target_id: str) -> None:
         finish_if_needed(room)
         return
 
+    # After human resolves a choice, auto-play for AI if needed
+    if room["status"] == "playing" and auto_play_needed(room):
+        auto_play_ai_turns(code)
+        return
     if pending["type"] == "winner":
         room["status"] = "finished"
         room["pending_choice"] = None
@@ -1386,6 +1620,15 @@ class Handler(BaseHTTPRequestHandler):
 
         with LOCK:
             try:
+                if self.path == "/api/create_ai_game":
+                    name = str(data.get("name", "")).strip()
+                    if not name:
+                        raise ValueError("请输入名字")
+                    code, player_id = create_ai_game(name)
+                    auto_play_ai_turns(code)
+                    json_response(self, 200, {"ok": True, "room_code": code, "player_id": player_id})
+                    return
+
                 if self.path == "/api/create_room":
                     name = str(data.get("name", "")).strip()
                     if not name:
@@ -1393,7 +1636,6 @@ class Handler(BaseHTTPRequestHandler):
                     code, player_id = create_room(name)
                     json_response(self, 200, {"ok": True, "room_code": code, "player_id": player_id})
                     return
-
                 if self.path == "/api/join_room":
                     name = str(data.get("name", "")).strip()
                     code = str(data.get("room_code", "")).strip().upper()
