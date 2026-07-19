@@ -1531,9 +1531,6 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
         room["log"] = f"{player['name']} 打出【顺手牵钥】，但目标并列，必须停下来问人决定抢谁。"
         return
 
-        if room["status"] == "playing" and auto_play_needed(room):
-            auto_play_ai_turns(code)
-            return
 
 def resolve_choice(code: str, player_id: str, target_id: str) -> None:
     room, _ = require_room_and_player(code, player_id)
@@ -1574,9 +1571,6 @@ def resolve_choice(code: str, player_id: str, target_id: str) -> None:
         return
 
     # After human resolves a choice, auto-play for AI if needed
-    if room["status"] == "playing" and auto_play_needed(room):
-        auto_play_ai_turns(code)
-        return
     if pending["type"] == "winner":
         room["status"] = "finished"
         room["pending_choice"] = None
@@ -1653,20 +1647,16 @@ class Handler(BaseHTTPRequestHandler):
                     return
 
                 if self.path == "/api/play_card":
-                    play_card(
-                        str(data.get("room_code", "")).strip().upper(),
-                        str(data.get("player_id", "")).strip(),
-                        int(data.get("hand_index", -1)),
-                    )
+                    code = str(data.get("room_code", "")).strip().upper()
+                    play_card(code, str(data.get("player_id", "")).strip(), int(data.get("hand_index", -1)))
+                    auto_play_ai_turns(code)
                     json_response(self, 200, {"ok": True})
                     return
 
                 if self.path == "/api/resolve_choice":
-                    resolve_choice(
-                        str(data.get("room_code", "")).strip().upper(),
-                        str(data.get("player_id", "")).strip(),
-                        str(data.get("target_id", "")).strip(),
-                    )
+                    code = str(data.get("room_code", "")).strip().upper()
+                    resolve_choice(code, str(data.get("player_id", "")).strip(), str(data.get("target_id", "")).strip())
+                    auto_play_ai_turns(code)
                     json_response(self, 200, {"ok": True})
                     return
 
