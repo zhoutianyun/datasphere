@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: three-agent-card-room
+    runtime: python
+    rootDir: 游戏文件
+    buildCommand: ""
+    startCommand: python server.py
+    plan: free
+    autoDeploy: true

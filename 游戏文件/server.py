@@ -1,0 +1,1450 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import json
+import os
+import random
+import secrets
+import threading
+from http import HTTPStatus
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import parse_qs, urlparse
+
+
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", "8000"))
+MAX_TURNS = 12
+MAX_SCORE = 2
+ROOM_SIZE = 3
+
+CARD_DEFS = {
+    "investigate": {
+        "name": "调查牌",
+        "rank": "A",
+        "suit": "♠",
+        "desc": "获得 1 条线索。",
+        "foot": "资源牌",
+    },
+    "key": {
+        "name": "钥匙牌",
+        "rank": "K",
+        "suit": "♦",
+        "desc": "获得 1 把钥匙。",
+        "foot": "资源牌",
+    },
+    "disrupt": {
+        "name": "干扰牌",
+        "rank": "J",
+        "suit": "♣",
+        "desc": "让线索领先的对手失去 1 条线索。",
+        "foot": "对抗牌",
+    },
+    "open": {
+        "name": "开箱牌",
+        "rank": "Q",
+        "suit": "♥",
+        "desc": "需要 2 条线索和 1 把钥匙，成功后得 1 分。",
+        "foot": "得分牌",
+    },
+    "double_investigate": {
+        "name": "深度调查",
+        "rank": "10",
+        "suit": "♠",
+        "desc": "直接获得 2 条线索。",
+        "foot": "强化资源牌",
+    },
+    "steal_key": {
+        "name": "顺手牵钥",
+        "rank": "9",
+        "suit": "♦",
+        "desc": "从钥匙最多的对手那里夺走 1 把钥匙；若并列则问人决定。",
+        "foot": "抢夺牌",
+    },
+    "shield": {
+        "name": "防护牌",
+        "rank": "8",
+        "suit": "♣",
+        "desc": "获得 1 层护盾。下一次被干扰或被抢钥匙时优先抵消。",
+        "foot": "防守牌",
+    },
+    "wild": {
+        "name": "万用牌",
+        "rank": "JOKER",
+        "suit": "★",
+        "desc": "会自动按当前局势变成最有用的效果。",
+        "foot": "高随机牌",
+    },
+}
+
+DECK_POOL = [
+    "investigate",
+    "investigate",
+    "investigate",
+    "investigate",
+    "key",
+    "key",
+    "key",
+    "disrupt",
+    "disrupt",
+    "open",
+    "open",
+    "double_investigate",
+    "double_investigate",
+    "steal_key",
+    "steal_key",
+    "shield",
+    "shield",
+    "wild",
+    "wild",
+]
+DECK_SIZE = 12
+HAND_SIZE = 5
+
+ROOMS: dict[str, dict] = {}
+LOCK = threading.Lock()
+
+
+HTML = """<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>三机对抗 - 联机房间版</title>
+  <style>
+    :root {
+      --bg: #0f1116;
+      --table: #154734;
+      --panel: rgba(16, 20, 26, 0.94);
+      --line: #32424d;
+      --text: #f4efe5;
+      --muted: #c8c0b2;
+      --gold: #e0b15a;
+      --red: #d97468;
+      --green: #82c78f;
+      --blue: #81b7e7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(224,177,90,0.16), transparent 25%),
+        linear-gradient(180deg, #143828, var(--bg));
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .app {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+    }
+    .shell {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+    }
+    .side {
+      padding: 24px;
+      align-self: start;
+      position: sticky;
+      top: 24px;
+    }
+    h1,h2,h3,p { margin-top: 0; }
+    .tag {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(224,177,90,0.14);
+      color: var(--gold);
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    .desc {
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+    .mini {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      margin-bottom: 12px;
+    }
+    .mini strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--gold);
+    }
+    .main-top {
+      padding: 22px 24px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(135deg, rgba(224,177,90,0.12), rgba(129,183,231,0.08));
+    }
+    .main-top p {
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 0;
+    }
+    .section {
+      padding: 20px;
+    }
+    .hidden { display: none; }
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    input {
+      flex: 1;
+      min-width: 180px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      padding: 12px 14px;
+      font-size: 14px;
+    }
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      color: #171a20;
+      background: #f4efe5;
+    }
+    button.primary {
+      background: linear-gradient(135deg, var(--gold), var(--blue));
+    }
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .status {
+      color: var(--muted);
+      margin-bottom: 12px;
+      white-space: pre-line;
+    }
+    .table {
+      display: grid;
+      gap: 18px;
+      padding: 20px;
+      min-height: 720px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-areas:
+        "top-left top-right"
+        "center center"
+        "bottom bottom";
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,0.08), transparent 26%),
+        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 30%),
+        var(--table);
+    }
+    .player {
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 16px;
+      background: rgba(16,20,26,0.26);
+    }
+    .player.opponent {
+      min-height: 240px;
+    }
+    .player.me {
+      background: rgba(16,20,26,0.42);
+      border-color: rgba(224,177,90,0.35);
+    }
+    .player.top-left { grid-area: top-left; }
+    .player.top-right { grid-area: top-right; }
+    .player.bottom { grid-area: bottom; }
+    .center-stage {
+      grid-area: center;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 18px;
+      background: rgba(7, 11, 16, 0.32);
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+    .center-slot {
+      min-height: 170px;
+      border-radius: 18px;
+      padding: 14px;
+      border: 1px dashed rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.03);
+    }
+    .center-slot strong {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--gold);
+      font-size: 14px;
+    }
+    .player-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      align-items: baseline;
+    }
+    .player-head span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .badge {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      font-size: 13px;
+    }
+    .hand {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .opponent-hand {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-height: 94px;
+      align-items: flex-start;
+    }
+    .back-card {
+      width: 52px;
+      height: 74px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background:
+        linear-gradient(135deg, rgba(224,177,90,0.28), rgba(129,183,231,0.2)),
+        repeating-linear-gradient(
+          45deg,
+          rgba(255,255,255,0.08) 0,
+          rgba(255,255,255,0.08) 8px,
+          rgba(0,0,0,0.08) 8px,
+          rgba(0,0,0,0.08) 16px
+        ),
+        #17202a;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+    }
+    .card {
+      width: 160px;
+      min-height: 210px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02)),
+        #181c23;
+      color: var(--text);
+      text-align: left;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .card:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .rank {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--gold);
+    }
+    .suit {
+      font-size: 22px;
+      color: var(--gold);
+    }
+    .card-name {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .card-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--muted);
+      flex: 1;
+    }
+    .card-foot {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--gold);
+    }
+    .played-card {
+      width: 100%;
+      max-width: 180px;
+      min-height: 120px;
+      border-radius: 16px;
+      border: 1px solid rgba(224,177,90,0.28);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)),
+        #141920;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .played-card.empty {
+      border-style: dashed;
+      border-color: rgba(255,255,255,0.12);
+      color: var(--muted);
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .played-card .card-name {
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+    .played-card .card-text {
+      font-size: 12px;
+    }
+    .played-row {
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .log-box {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      background: rgba(0,0,0,0.18);
+      min-height: 150px;
+      white-space: pre-line;
+      line-height: 1.7;
+    }
+    .target-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px dashed var(--gold);
+      background: rgba(224,177,90,0.08);
+    }
+    .winner { color: var(--green); font-weight: 700; }
+    .warn { color: var(--gold); font-weight: 700; }
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      .side { position: static; }
+      .table {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "top-left"
+          "top-right"
+          "center"
+          "bottom";
+      }
+      .center-stage {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="shell side">
+      <div class="tag">房间制联机牌局</div>
+      <h1>三机对抗</h1>
+      <p class="desc">一台电脑开房，另外两台电脑加入。同一局牌桌会实时同步，3 个 Agent 轮流竞争抢分。</p>
+      <div class="mini">
+        <strong>我的身份</strong>
+        <div id="meText">未加入房间</div>
+      </div>
+      <div class="mini">
+        <strong>房间号</strong>
+        <div id="roomText">暂无</div>
+      </div>
+      <div class="mini">
+        <strong>当前状态</strong>
+        <div id="stateText">等待创建或加入房间</div>
+      </div>
+      <div class="mini">
+        <strong>联机提示</strong>
+        <div>其他电脑请打开同一地址并输入房间号加入。</div>
+      </div>
+    </aside>
+
+    <main class="shell">
+      <section class="main-top">
+        <h2>联机说明</h2>
+        <p>房主先创建房间，其他玩家输入房间号加入。满 3 人后会自动开始。每位玩家只操作自己的手牌。</p>
+      </section>
+
+      <section class="section" id="joinView">
+        <div class="status" id="joinStatus">先输入你的名字，然后创建房间或加入房间。</div>
+        <div class="row">
+          <input id="nameInput" placeholder="输入你的名字，例如 Agent 1">
+        </div>
+        <div class="row">
+          <button class="primary" id="createBtn">创建房间</button>
+        </div>
+        <div class="row">
+          <input id="roomInput" placeholder="输入房间号加入，例如 A1B2C">
+          <button id="joinBtn">加入房间</button>
+        </div>
+      </section>
+
+      <section class="section hidden" id="lobbyView">
+        <div class="status" id="lobbyStatus"></div>
+        <div class="row">
+          <button id="leaveBtn">离开房间</button>
+        </div>
+      </section>
+
+      <section class="hidden" id="gameView">
+        <div class="table" id="table"></div>
+        <div class="section">
+          <div class="log-box" id="logText"></div>
+          <div class="target-box hidden" id="choiceBox">
+            <div id="choicePrompt"></div>
+            <div class="row" id="choiceButtons"></div>
+          </div>
+          <div class="row" style="margin-top: 16px;">
+            <button id="refreshBtn">立即同步</button>
+            <button id="leaveBtn2">离开房间</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const cardDefs = %CARD_DEFS%;
+    const appState = {
+      roomCode: localStorage.getItem("roomCode") || "",
+      playerId: localStorage.getItem("playerId") || "",
+      playerName: localStorage.getItem("playerName") || "",
+      pollTimer: null,
+      snapshot: null
+    };
+
+    const joinView = document.getElementById("joinView");
+    const lobbyView = document.getElementById("lobbyView");
+    const gameView = document.getElementById("gameView");
+    const joinStatus = document.getElementById("joinStatus");
+    const lobbyStatus = document.getElementById("lobbyStatus");
+    const logText = document.getElementById("logText");
+
+    document.getElementById("nameInput").value = appState.playerName;
+    document.getElementById("roomInput").value = appState.roomCode;
+
+    function saveIdentity() {
+      localStorage.setItem("roomCode", appState.roomCode);
+      localStorage.setItem("playerId", appState.playerId);
+      localStorage.setItem("playerName", appState.playerName);
+    }
+
+    function clearIdentity() {
+      appState.roomCode = "";
+      appState.playerId = "";
+      appState.snapshot = null;
+      localStorage.removeItem("roomCode");
+      localStorage.removeItem("playerId");
+    }
+
+    async function api(path, method = "GET", body = null) {
+      const options = { method, headers: {} };
+      if (body) {
+        options.headers["Content-Type"] = "application/json";
+        options.body = JSON.stringify(body);
+      }
+      const res = await fetch(path, options);
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "请求失败");
+      }
+      return data;
+    }
+
+    function setSide(snapshot) {
+      document.getElementById("meText").textContent = appState.playerName || "未加入房间";
+      document.getElementById("roomText").textContent = appState.roomCode || "暂无";
+      if (!snapshot) {
+        document.getElementById("stateText").textContent = "等待创建或加入房间";
+        return;
+      }
+      const statusMap = {
+        waiting: "等待玩家加入",
+        playing: "游戏进行中",
+        finished: "本局已结束",
+        choosing_disrupt: "等待人类决定干扰目标",
+        choosing_winner: "等待人类决定并列胜者"
+      };
+      document.getElementById("stateText").textContent = statusMap[snapshot.status] || snapshot.status;
+    }
+
+    function showJoin() {
+      joinView.classList.remove("hidden");
+      lobbyView.classList.add("hidden");
+      gameView.classList.add("hidden");
+      setSide(null);
+    }
+
+    function showLobby(snapshot) {
+      joinView.classList.add("hidden");
+      lobbyView.classList.remove("hidden");
+      gameView.classList.add("hidden");
+      const players = snapshot.players.map((p) => p.name).join("、");
+      lobbyStatus.textContent = `房间 ${snapshot.room_code}\\n当前玩家：${players}\\n${snapshot.players.length}/3 人\\n满 3 人后自动开始`;
+      setSide(snapshot);
+    }
+
+    function renderGame(snapshot) {
+      joinView.classList.add("hidden");
+      lobbyView.classList.add("hidden");
+      gameView.classList.remove("hidden");
+      setSide(snapshot);
+      const table = document.getElementById("table");
+      table.innerHTML = "";
+
+      snapshot.players.forEach((player) => {
+        const isMe = player.id === appState.playerId;
+        const isCurrent = snapshot.current_player_id === player.id;
+        const handHtml = player.hand.map((card, index) => {
+          const def = cardDefs[card];
+          const disabled = !isMe || !isCurrent || snapshot.status !== "playing";
+          return `
+            <button class="card" data-index="${index}" ${disabled ? "disabled" : ""}>
+              <div>
+                <div class="card-top">
+                  <span class="rank">${def.rank}</span>
+                  <span class="suit">${def.suit}</span>
+                </div>
+                <div class="card-name">${def.name}</div>
+                <div class="card-text">${def.desc}</div>
+              </div>
+              <div class="card-foot">${def.foot}</div>
+            </button>
+          `;
+        }).join("");
+
+        const hiddenHand = isMe ? handHtml : `<div class="badge">其余玩家看不到对方手牌</div>`;
+
+        const section = document.createElement("section");
+        section.className = "player";
+        section.innerHTML = `
+          <div class="player-head">
+            <h3>${player.name}${isMe ? "（你）" : ""}</h3>
+            <span>${isCurrent ? "当前出牌者" : ""}</span>
+          </div>
+          <div class="stats">
+            <div class="badge">分数：${player.score}</div>
+            <div class="badge">线索：${player.clues}</div>
+            <div class="badge">钥匙：${player.keys}</div>
+            <div class="badge">牌库：${player.deck_count}</div>
+          </div>
+          <div class="hand">${hiddenHand}</div>
+        `;
+        table.appendChild(section);
+      });
+
+      const mySection = table.querySelectorAll(".player")[snapshot.players.findIndex((p) => p.id === appState.playerId)];
+      if (mySection) {
+        mySection.querySelectorAll(".card").forEach((button) => {
+          button.addEventListener("click", () => playCard(Number(button.dataset.index)));
+        });
+      }
+
+      const turnName = snapshot.players.find((p) => p.id === snapshot.current_player_id)?.name || "未知";
+      const winnerText = snapshot.winner_name ? `\\n胜者：${snapshot.winner_name}` : "";
+      logText.className = snapshot.status === "finished" ? "winner" : (snapshot.status.startsWith("choosing") ? "warn" : "");
+      logText.textContent = `房间：${snapshot.room_code}\\n剩余总回合：${snapshot.turns_left} / ${snapshot.max_turns}\\n当前出牌者：${turnName}\\n\\n${snapshot.log}${winnerText}`;
+
+      renderChoice(snapshot);
+    }
+
+    function renderPublicCard(card) {
+      if (!card) {
+        return `<div class="played-card empty">本轮还没出牌</div>`;
+      }
+      const def = cardDefs[card];
+      return `
+        <div class="played-card">
+          <div>
+            <div class="card-top">
+              <span class="rank">${def.rank}</span>
+              <span class="suit">${def.suit}</span>
+            </div>
+            <div class="card-name">${def.name}</div>
+            <div class="card-text">${def.desc}</div>
+          </div>
+          <div class="card-foot">${def.foot}</div>
+        </div>
+      `;
+    }
+
+    function renderOpponentBacks(count) {
+      return Array.from({ length: count }, () => `<div class="back-card" aria-hidden="true"></div>`).join("");
+    }
+
+    function renderGame(snapshot) {
+      joinView.classList.add("hidden");
+      lobbyView.classList.add("hidden");
+      gameView.classList.remove("hidden");
+      setSide(snapshot);
+      const table = document.getElementById("table");
+      table.innerHTML = "";
+      const meIndex = snapshot.players.findIndex((p) => p.id === appState.playerId);
+      const seatOrder = meIndex === -1
+        ? snapshot.players
+        : [
+            snapshot.players[(meIndex + 1) % snapshot.players.length],
+            snapshot.players[(meIndex + 2) % snapshot.players.length],
+            snapshot.players[meIndex]
+          ];
+      const seatClasses = ["top-left", "top-right", "bottom"];
+
+      seatOrder.forEach((player, index) => {
+        const isMe = player.id === appState.playerId;
+        const isCurrent = snapshot.current_player_id === player.id;
+        const handHtml = player.hand.map((card, handIndex) => {
+          const def = cardDefs[card];
+          const disabled = !isMe || !isCurrent || snapshot.status !== "playing";
+          return `
+            <button class="card" data-index="${handIndex}" ${disabled ? "disabled" : ""}>
+              <div>
+                <div class="card-top">
+                  <span class="rank">${def.rank}</span>
+                  <span class="suit">${def.suit}</span>
+                </div>
+                <div class="card-name">${def.name}</div>
+                <div class="card-text">${def.desc}</div>
+              </div>
+              <div class="card-foot">${def.foot}</div>
+            </button>
+          `;
+        }).join("");
+
+        const visibleHand = isMe
+          ? handHtml
+          : `<div class="opponent-hand">${renderOpponentBacks(player.hand_count)}</div>`;
+
+        const section = document.createElement("section");
+        section.className = `player ${isMe ? "me" : "opponent"} ${seatClasses[index] || ""}`;
+        section.innerHTML = `
+          <div class="player-head">
+            <h3>${player.name}${isMe ? "（你）" : ""}</h3>
+            <span>${isCurrent ? "当前出牌者" : ""}</span>
+          </div>
+          <div class="stats">
+            <div class="badge">分数：${player.score}</div>
+            <div class="badge">线索：${player.clues}</div>
+            <div class="badge">钥匙：${player.keys}</div>
+            <div class="badge">护盾：${player.shield}</div>
+            <div class="badge">手牌：${player.hand_count}</div>
+            <div class="badge">牌库：${player.deck_count}</div>
+          </div>
+          <div class="played-row">
+            ${renderPublicCard(player.last_played)}
+          </div>
+          <div class="hand">${visibleHand}</div>
+        `;
+        table.appendChild(section);
+      });
+
+      const center = document.createElement("section");
+      center.className = "center-stage";
+      center.innerHTML = seatOrder.map((player) => `
+        <div class="center-slot">
+          <strong>${player.name} 的出牌区</strong>
+          ${renderPublicCard(player.last_played)}
+        </div>
+      `).join("");
+      table.appendChild(center);
+
+      const mySection = table.querySelector(".player.me");
+      if (mySection) {
+        mySection.querySelectorAll(".card").forEach((button) => {
+          button.addEventListener("click", () => playCard(Number(button.dataset.index)));
+        });
+      }
+
+      const turnName = snapshot.players.find((p) => p.id === snapshot.current_player_id)?.name || "未知";
+      const winnerText = snapshot.winner_name ? `\\n胜者：${snapshot.winner_name}` : "";
+      logText.className = snapshot.status === "finished" ? "winner" : (snapshot.status.startsWith("choosing") ? "warn" : "");
+      logText.textContent = `房间：${snapshot.room_code}\\n剩余总回合：${snapshot.turns_left} / ${snapshot.max_turns}\\n当前出牌者：${turnName}\\n\\n${snapshot.log}${winnerText}`;
+
+      renderChoice(snapshot);
+    }
+
+    function renderChoice(snapshot) {
+      const box = document.getElementById("choiceBox");
+      const prompt = document.getElementById("choicePrompt");
+      const buttons = document.getElementById("choiceButtons");
+      buttons.innerHTML = "";
+
+      if (!snapshot.pending_choice) {
+        box.classList.add("hidden");
+        return;
+      }
+
+      box.classList.remove("hidden");
+      prompt.textContent = snapshot.pending_choice.prompt;
+      snapshot.pending_choice.options.forEach((option) => {
+        const button = document.createElement("button");
+        button.textContent = option.name;
+        button.addEventListener("click", () => resolveChoice(option.id));
+        buttons.appendChild(button);
+      });
+    }
+
+    async function refreshState() {
+      if (!appState.roomCode || !appState.playerId) {
+        showJoin();
+        return;
+      }
+      try {
+        const data = await api(`/api/state?room=${encodeURIComponent(appState.roomCode)}&player=${encodeURIComponent(appState.playerId)}`);
+        appState.snapshot = data.room;
+        if (data.room.status === "waiting") {
+          showLobby(data.room);
+        } else {
+          renderGame(data.room);
+        }
+      } catch (error) {
+        joinStatus.textContent = error.message;
+        clearIdentity();
+        showJoin();
+      }
+    }
+
+    async function createRoom() {
+      try {
+        const name = document.getElementById("nameInput").value.trim();
+        if (!name) throw new Error("请先输入你的名字");
+        appState.playerName = name;
+        const data = await api("/api/create_room", "POST", { name });
+        appState.roomCode = data.room_code;
+        appState.playerId = data.player_id;
+        saveIdentity();
+        refreshState();
+      } catch (error) {
+        joinStatus.textContent = error.message;
+      }
+    }
+
+    async function joinRoom() {
+      try {
+        const name = document.getElementById("nameInput").value.trim();
+        const roomCode = document.getElementById("roomInput").value.trim().toUpperCase();
+        if (!name) throw new Error("请先输入你的名字");
+        if (!roomCode) throw new Error("请输入房间号");
+        appState.playerName = name;
+        const data = await api("/api/join_room", "POST", { name, room_code: roomCode });
+        appState.roomCode = roomCode;
+        appState.playerId = data.player_id;
+        saveIdentity();
+        refreshState();
+      } catch (error) {
+        joinStatus.textContent = error.message;
+      }
+    }
+
+    async function playCard(handIndex) {
+      try {
+        await api("/api/play_card", "POST", {
+          room_code: appState.roomCode,
+          player_id: appState.playerId,
+          hand_index: handIndex
+        });
+        refreshState();
+      } catch (error) {
+        logText.textContent = error.message;
+      }
+    }
+
+    async function resolveChoice(targetId) {
+      try {
+        await api("/api/resolve_choice", "POST", {
+          room_code: appState.roomCode,
+          player_id: appState.playerId,
+          target_id: targetId
+        });
+        refreshState();
+      } catch (error) {
+        logText.textContent = error.message;
+      }
+    }
+
+    function leaveRoom() {
+      clearIdentity();
+      showJoin();
+    }
+
+    document.getElementById("createBtn").addEventListener("click", createRoom);
+    document.getElementById("joinBtn").addEventListener("click", joinRoom);
+    document.getElementById("refreshBtn").addEventListener("click", refreshState);
+    document.getElementById("leaveBtn").addEventListener("click", leaveRoom);
+    document.getElementById("leaveBtn2").addEventListener("click", leaveRoom);
+
+    setInterval(refreshState, 1000);
+    refreshState();
+  </script>
+</body>
+</html>
+"""
+
+
+def json_response(handler: BaseHTTPRequestHandler, status: int, payload: dict) -> None:
+    data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    handler.send_response(status)
+    handler.send_header("Content-Type", "application/json; charset=utf-8")
+    handler.send_header("Content-Length", str(len(data)))
+    handler.end_headers()
+    handler.wfile.write(data)
+
+
+def html_response(handler: BaseHTTPRequestHandler, html: str) -> None:
+    data = html.encode("utf-8")
+    handler.send_response(HTTPStatus.OK)
+    handler.send_header("Content-Type", "text/html; charset=utf-8")
+    handler.send_header("Content-Length", str(len(data)))
+    handler.end_headers()
+    handler.wfile.write(data)
+
+
+def error(handler: BaseHTTPRequestHandler, message: str, status: int = 400) -> None:
+    json_response(handler, status, {"ok": False, "error": message})
+
+
+def room_code() -> str:
+    alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    while True:
+        code = "".join(secrets.choice(alphabet) for _ in range(5))
+        if code not in ROOMS:
+            return code
+
+
+def shuffled_deck() -> list[str]:
+    deck = list(DECK_POOL)
+    random.shuffle(deck)
+    return deck[:DECK_SIZE]
+
+
+def draw_card(player: dict) -> None:
+    if player["deck"]:
+        player["hand"].append(player["deck"].pop(0))
+
+
+def make_player(name: str, is_host: bool = False) -> dict:
+    return {
+        "id": secrets.token_hex(8),
+        "name": name,
+        "is_host": is_host,
+        "score": 0,
+        "clues": 0,
+        "keys": 0,
+        "shield": 0,
+        "deck": [],
+        "hand": [],
+        "last_played": None,
+    }
+
+
+def reset_players_for_game(players: list[dict]) -> None:
+    for player in players:
+        player["score"] = 0
+        player["clues"] = 0
+        player["keys"] = 0
+        player["shield"] = 0
+        player["deck"] = shuffled_deck()
+        player["hand"] = []
+        player["last_played"] = None
+        for _ in range(HAND_SIZE):
+            draw_card(player)
+
+
+def serialize_room(room: dict, viewer_id: str) -> dict:
+    players = []
+    for player in room["players"]:
+        players.append(
+            {
+                "id": player["id"],
+                "name": player["name"],
+                "score": player["score"],
+                "clues": player["clues"],
+                "keys": player["keys"],
+                "shield": player["shield"],
+                "deck_count": len(player["deck"]),
+                "hand_count": len(player["hand"]),
+                "hand": list(player["hand"]) if player["id"] == viewer_id else [],
+                "last_played": player["last_played"],
+                "is_host": player["is_host"],
+            }
+        )
+
+    viewer = next((p for p in room["players"] if p["id"] == viewer_id), None)
+    pending_choice = None
+    if room["pending_choice"]:
+        pending_choice = {
+            "type": room["pending_choice"]["type"],
+            "prompt": room["pending_choice"]["prompt"],
+            "options": [
+                {"id": option_id, "name": player_name(room, option_id)}
+                for option_id in room["pending_choice"]["options"]
+            ],
+        }
+
+    return {
+        "room_code": room["code"],
+        "status": room["status"],
+        "turns_left": room["turns_left"],
+        "max_turns": MAX_TURNS,
+        "players": players,
+        "current_player_id": room["current_player_id"],
+        "log": room["log"],
+        "pending_choice": pending_choice,
+        "winner_name": player_name(room, room["winner_id"]) if room["winner_id"] else "",
+        "is_host": bool(viewer and viewer["is_host"]),
+    }
+
+
+def player_name(room: dict, player_id: str | None) -> str:
+    if not player_id:
+        return ""
+    for player in room["players"]:
+        if player["id"] == player_id:
+            return player["name"]
+    return ""
+
+
+def current_player(room: dict) -> dict:
+    for player in room["players"]:
+        if player["id"] == room["current_player_id"]:
+            return player
+    raise KeyError("current player missing")
+
+
+def next_player(room: dict) -> None:
+    ids = [player["id"] for player in room["players"]]
+    idx = ids.index(room["current_player_id"])
+    room["current_player_id"] = ids[(idx + 1) % len(ids)]
+
+
+def absorb_shield(player: dict) -> bool:
+    if player["shield"] > 0:
+        player["shield"] -= 1
+        return True
+    return False
+
+
+def record_played_card(player: dict, card: str) -> None:
+    player["last_played"] = card
+
+
+def finish_if_needed(room: dict) -> None:
+    if room["status"] == "finished":
+        return
+
+    for player in room["players"]:
+        if player["score"] >= MAX_SCORE:
+            room["status"] = "finished"
+            room["winner_id"] = player["id"]
+            room["log"] = f"{player['name']} 率先达到 2 分，立即获胜。"
+            return
+
+    if room["turns_left"] > 0:
+        return
+
+    best_score = max(player["score"] for player in room["players"])
+    score_leaders = [p for p in room["players"] if p["score"] == best_score]
+    if len(score_leaders) == 1:
+        room["status"] = "finished"
+        room["winner_id"] = score_leaders[0]["id"]
+        room["log"] = f"12 回合结束后，{score_leaders[0]['name']} 以最高分获胜。"
+        return
+
+    best_resources = max(p["clues"] + p["keys"] for p in score_leaders)
+    resource_leaders = [p for p in score_leaders if p["clues"] + p["keys"] == best_resources]
+    if len(resource_leaders) == 1:
+        room["status"] = "finished"
+        room["winner_id"] = resource_leaders[0]["id"]
+        room["log"] = f"12 回合结束后，{resource_leaders[0]['name']} 同分但资源更高，获得胜利。"
+        return
+
+    room["status"] = "choosing_winner"
+    room["pending_choice"] = {
+        "type": "winner",
+        "prompt": "最终分数和资源都完全并列，必须由人决定胜者：",
+        "options": [p["id"] for p in resource_leaders],
+        "source_id": None,
+    }
+    room["log"] = "12 回合结束后仍然完全并列，必须停下来问人决定胜者。"
+
+
+def create_room(name: str) -> tuple[str, str]:
+    code = room_code()
+    host = make_player(name, is_host=True)
+    room = {
+        "code": code,
+        "players": [host],
+        "status": "waiting",
+        "turns_left": MAX_TURNS,
+        "current_player_id": host["id"],
+        "log": "房间已创建，等待另外两位玩家加入。",
+        "pending_choice": None,
+        "winner_id": None,
+    }
+    ROOMS[code] = room
+    return code, host["id"]
+
+
+def join_room(code: str, name: str) -> str:
+    room = ROOMS.get(code)
+    if not room:
+        raise ValueError("房间不存在")
+    if room["status"] != "waiting":
+        raise ValueError("房间已经开始，不能再加入")
+    if len(room["players"]) >= ROOM_SIZE:
+        raise ValueError("房间人数已满")
+    player = make_player(name)
+    room["players"].append(player)
+    if len(room["players"]) == ROOM_SIZE:
+        reset_players_for_game(room["players"])
+        room["status"] = "playing"
+        room["turns_left"] = MAX_TURNS
+        room["current_player_id"] = room["players"][0]["id"]
+        room["winner_id"] = None
+        room["pending_choice"] = None
+        room["log"] = f"{name} 已加入房间。当前正好 3 人，游戏自动开始。"
+    else:
+        room["log"] = f"{name} 已加入房间。当前 {len(room['players'])}/3 人。"
+    return player["id"]
+
+
+def start_game(code: str, player_id: str) -> None:
+    room = ROOMS.get(code)
+    if not room:
+        raise ValueError("房间不存在")
+    host = next((p for p in room["players"] if p["id"] == player_id), None)
+    if not host or not host["is_host"]:
+        raise ValueError("只有房主可以开始游戏")
+    if len(room["players"]) != ROOM_SIZE:
+        raise ValueError("需要 3 位玩家才能开始")
+    reset_players_for_game(room["players"])
+    room["status"] = "playing"
+    room["turns_left"] = MAX_TURNS
+    room["current_player_id"] = room["players"][0]["id"]
+    room["winner_id"] = None
+    room["pending_choice"] = None
+    room["log"] = "游戏开始。3 位玩家轮流出牌，先拿到 2 分者获胜。"
+
+
+def require_room_and_player(code: str, player_id: str) -> tuple[dict, dict]:
+    room = ROOMS.get(code)
+    if not room:
+        raise ValueError("房间不存在")
+    player = next((p for p in room["players"] if p["id"] == player_id), None)
+    if not player:
+        raise ValueError("你不在这个房间里")
+    return room, player
+
+
+def play_card(code: str, player_id: str, hand_index: int) -> None:
+    room, player = require_room_and_player(code, player_id)
+    if room["status"] != "playing":
+        raise ValueError("当前不能出牌")
+    if room["pending_choice"]:
+        raise ValueError("当前正在等待人类做选择")
+    if room["current_player_id"] != player_id:
+        raise ValueError("还没轮到你出牌")
+    if hand_index < 0 or hand_index >= len(player["hand"]):
+        raise ValueError("手牌索引无效")
+
+    card = player["hand"].pop(hand_index)
+    record_played_card(player, card)
+    room["turns_left"] = max(0, room["turns_left"] - 1)
+
+    if card == "investigate":
+        player["clues"] += 1
+        draw_card(player)
+        room["log"] = f"{player['name']} 打出【调查牌】，获得 1 条线索。"
+        next_player(room)
+        finish_if_needed(room)
+        return
+
+    if card == "double_investigate":
+        player["clues"] += 2
+        draw_card(player)
+        room["log"] = f"{player['name']} 打出【深度调查】，直接获得 2 条线索。"
+        next_player(room)
+        finish_if_needed(room)
+        return
+
+    if card == "key":
+        player["keys"] += 1
+        draw_card(player)
+        room["log"] = f"{player['name']} 打出【钥匙牌】，获得 1 把钥匙。"
+        next_player(room)
+        finish_if_needed(room)
+        return
+
+    if card == "shield":
+        player["shield"] += 1
+        draw_card(player)
+        room["log"] = f"{player['name']} 打出【防护牌】，获得 1 层护盾。"
+        next_player(room)
+        finish_if_needed(room)
+        return
+
+    if card == "open":
+        if player["clues"] >= 2 and player["keys"] >= 1:
+            player["clues"] -= 2
+            player["keys"] -= 1
+            player["score"] += 1
+            room["log"] = f"{player['name']} 打出【开箱牌】并成功开箱，获得 1 分。"
+        else:
+            room["log"] = f"{player['name']} 打出【开箱牌】，但资源不足，开箱失败。"
+        draw_card(player)
+        next_player(room)
+        finish_if_needed(room)
+        return
+
+    if card == "wild":
+        if player["clues"] >= 1 and player["keys"] >= 1:
+            player["clues"] -= 1
+            player["keys"] -= 1
+            player["score"] += 1
+            room["log"] = f"{player['name']} 打出【万用牌】，把它变成终结资源，直接完成一次开箱并获得 1 分。"
+        elif player["clues"] < 2:
+            player["clues"] += 1
+            room["log"] = f"{player['name']} 打出【万用牌】，当前最缺线索，因此获得 1 条线索。"
+        else:
+            player["keys"] += 1
+            room["log"] = f"{player['name']} 打出【万用牌】，当前最缺钥匙，因此获得 1 把钥匙。"
+        draw_card(player)
+        next_player(room)
+        finish_if_needed(room)
+        return
+
+    if card == "disrupt":
+        opponents = [p for p in room["players"] if p["id"] != player_id]
+        max_clues = max(p["clues"] for p in opponents)
+        if max_clues <= 0:
+            draw_card(player)
+            room["log"] = f"{player['name']} 打出【干扰牌】，但没有可削减线索的目标。"
+            next_player(room)
+            finish_if_needed(room)
+            return
+
+        targets = [p for p in opponents if p["clues"] == max_clues]
+        draw_card(player)
+        if len(targets) == 1:
+            if absorb_shield(targets[0]):
+                room["log"] = f"{player['name']} 打出【干扰牌】，但 {targets[0]['name']} 的护盾抵消了这次影响。"
+            else:
+                targets[0]["clues"] -= 1
+                room["log"] = f"{player['name']} 打出【干扰牌】，{targets[0]['name']} 失去 1 条线索。"
+            next_player(room)
+            finish_if_needed(room)
+            return
+
+        room["status"] = "choosing_disrupt"
+        room["pending_choice"] = {
+            "type": "disrupt",
+            "prompt": "两名对手在线索数上并列第一，请选择被干扰的目标：",
+            "options": [p["id"] for p in targets],
+            "source_id": player_id,
+        }
+        room["log"] = f"{player['name']} 打出【干扰牌】，但目标并列，必须停下来问人决定干扰谁。"
+        return
+
+    if card == "steal_key":
+        opponents = [p for p in room["players"] if p["id"] != player_id]
+        max_keys = max(p["keys"] for p in opponents)
+        if max_keys <= 0:
+            draw_card(player)
+            room["log"] = f"{player['name']} 打出【顺手牵钥】，但没有对手持有钥匙，本次抢夺落空。"
+            next_player(room)
+            finish_if_needed(room)
+            return
+
+        targets = [p for p in opponents if p["keys"] == max_keys]
+        draw_card(player)
+        if len(targets) == 1:
+            if absorb_shield(targets[0]):
+                room["log"] = f"{player['name']} 打出【顺手牵钥】，但 {targets[0]['name']} 的护盾抵消了这次抢夺。"
+            else:
+                targets[0]["keys"] -= 1
+                player["keys"] += 1
+                room["log"] = f"{player['name']} 打出【顺手牵钥】，从 {targets[0]['name']} 手里夺走了 1 把钥匙。"
+            next_player(room)
+            finish_if_needed(room)
+            return
+
+        room["status"] = "choosing_disrupt"
+        room["pending_choice"] = {
+            "type": "steal_key",
+            "prompt": "两名对手持有的钥匙数并列最多，请选择被抢夺的目标：",
+            "options": [p["id"] for p in targets],
+            "source_id": player_id,
+        }
+        room["log"] = f"{player['name']} 打出【顺手牵钥】，但目标并列，必须停下来问人决定抢谁。"
+        return
+
+
+def resolve_choice(code: str, player_id: str, target_id: str) -> None:
+    room, _ = require_room_and_player(code, player_id)
+    pending = room["pending_choice"]
+    if not pending:
+        raise ValueError("当前没有待决定的选择")
+    if target_id not in pending["options"]:
+        raise ValueError("目标不在可选范围内")
+
+    if pending["type"] == "disrupt":
+        target = next(p for p in room["players"] if p["id"] == target_id)
+        room["status"] = "playing"
+        room["pending_choice"] = None
+        if absorb_shield(target):
+            room["log"] = f"人类指定后，{target['name']} 的护盾抵消了这次干扰。"
+        else:
+            if target["clues"] > 0:
+                target["clues"] -= 1
+            room["log"] = f"人类指定后，{target['name']} 失去 1 条线索。"
+        next_player(room)
+        finish_if_needed(room)
+        return
+
+    if pending["type"] == "steal_key":
+        source = next(p for p in room["players"] if p["id"] == pending["source_id"])
+        target = next(p for p in room["players"] if p["id"] == target_id)
+        room["status"] = "playing"
+        room["pending_choice"] = None
+        if absorb_shield(target):
+            room["log"] = f"人类指定后，{target['name']} 的护盾抵消了这次抢夺。"
+        else:
+            if target["keys"] > 0:
+                target["keys"] -= 1
+                source["keys"] += 1
+            room["log"] = f"人类指定后，{source['name']} 从 {target['name']} 手里夺走了 1 把钥匙。"
+        next_player(room)
+        finish_if_needed(room)
+        return
+
+    if pending["type"] == "winner":
+        room["status"] = "finished"
+        room["pending_choice"] = None
+        room["winner_id"] = target_id
+        room["log"] = f"人类指定后，{player_name(room, target_id)} 成为并列决胜胜者。"
+        return
+
+
+class Handler(BaseHTTPRequestHandler):
+    def log_message(self, format: str, *args) -> None:
+        return
+
+    def do_GET(self) -> None:
+        parsed = urlparse(self.path)
+        if parsed.path == "/":
+            html_response(self, HTML.replace("%CARD_DEFS%", json.dumps(CARD_DEFS, ensure_ascii=False)))
+            return
+        if parsed.path == "/api/state":
+            qs = parse_qs(parsed.query)
+            code = (qs.get("room") or [""])[0].upper()
+            player_id = (qs.get("player") or [""])[0]
+            with LOCK:
+                try:
+                    room, _ = require_room_and_player(code, player_id)
+                    payload = {"ok": True, "room": serialize_room(room, player_id)}
+                except ValueError as exc:
+                    error(self, str(exc), 404)
+                    return
+            json_response(self, 200, payload)
+            return
+        error(self, "未找到页面", 404)
+
+    def do_POST(self) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length) if length else b"{}"
+            data = json.loads(body.decode("utf-8"))
+        except (ValueError, json.JSONDecodeError):
+            error(self, "请求格式错误")
+            return
+
+        with LOCK:
+            try:
+                if self.path == "/api/create_room":
+                    name = str(data.get("name", "")).strip()
+                    if not name:
+                        raise ValueError("请输入名字")
+                    code, player_id = create_room(name)
+                    json_response(self, 200, {"ok": True, "room_code": code, "player_id": player_id})
+                    return
+
+                if self.path == "/api/join_room":
+                    name = str(data.get("name", "")).strip()
+                    code = str(data.get("room_code", "")).strip().upper()
+                    if not name:
+                        raise ValueError("请输入名字")
+                    if not code:
+                        raise ValueError("请输入房间号")
+                    player_id = join_room(code, name)
+                    json_response(self, 200, {"ok": True, "player_id": player_id})
+                    return
+
+                if self.path == "/api/start_game":
+                    start_game(str(data.get("room_code", "")).strip().upper(), str(data.get("player_id", "")).strip())
+                    json_response(self, 200, {"ok": True})
+                    return
+
+                if self.path == "/api/play_card":
+                    play_card(
+                        str(data.get("room_code", "")).strip().upper(),
+                        str(data.get("player_id", "")).strip(),
+                        int(data.get("hand_index", -1)),
+                    )
+                    json_response(self, 200, {"ok": True})
+                    return
+
+                if self.path == "/api/resolve_choice":
+                    resolve_choice(
+                        str(data.get("room_code", "")).strip().upper(),
+                        str(data.get("player_id", "")).strip(),
+                        str(data.get("target_id", "")).strip(),
+                    )
+                    json_response(self, 200, {"ok": True})
+                    return
+
+                error(self, "未找到接口", 404)
+            except ValueError as exc:
+                error(self, str(exc))
+
+
+def main() -> None:
+    server = ThreadingHTTPServer((HOST, PORT), Handler)
+    print(f"联机牌局服务已启动：http://localhost:{PORT}")
+    print("其他电脑请访问：http://房主电脑局域网IP:8000")
+    print("按 Ctrl+C 停止服务。")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
+
+
+if __name__ == "__main__":
+    main()
