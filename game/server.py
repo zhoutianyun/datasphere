@@ -2201,6 +2201,8 @@ HTML = """<!DOCTYPE html>
 #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10000; }
 
 /* ===== RESPONSIVE LAYOUT: fit in viewport without scrolling ===== */
+.player .played-row { display: none !important; }
+.player.opponent { min-height: 30px !important; max-height: 60px !important; }
 html, body { height: 100%; overflow: hidden !important; margin: 0; padding: 0 !important; }
 .app { height: 100vh !important; max-height: 100vh; min-height: 0 !important; overflow: hidden !important; padding: 2px 4px !important; }
 main { padding: 0 !important; margin: 0 !important; overflow: hidden; display: flex; flex-direction: column; }
@@ -2232,7 +2234,7 @@ section { padding: 0; margin: 0; }
 .card-name { font-size: 8px !important; }
 .card-text { font-size: 7px !important; display: none; }
 .card-foot { font-size: 8px !important; }
-.player.bottom { font-size: 78%; } .player.bottom .card { width: 62px !important; min-height: 65px !important; } .player.bottom .card-name { font-size: 7px !important; } .player.bottom .card-text { font-size: 7px !important; } .player.bottom .card-top { font-size: 9px !important; } .player.bottom .badge { font-size: 8px !important; padding: 1px 3px !important; } .player.bottom .player-head h3 { font-size: 10px !important; }
+.player.bottom { font-size: 78%; } .player.bottom .card { width: 45px !important; min-height: 48px !important; padding: 2px !important; } .player.bottom .card-name { font-size: 7px !important; } .player.bottom .card-text { font-size: 7px !important; } .player.bottom .card-top { font-size: 9px !important; } .player.bottom .badge { font-size: 8px !important; padding: 1px 3px !important; } .player.bottom .player-head h3 { font-size: 10px !important; } .player.bottom .card-top, .player.bottom .card-name, .player.bottom .card-text, .player.bottom .card-foot { padding: 1px 2px !important; }
 .player.bottom .card-text { display: block; font-size: 8px !important; }
 .ghost { margin-top: 1px !important; padding: 1px 4px !important; font-size: 8px !important; }
 </style>
