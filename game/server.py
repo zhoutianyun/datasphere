@@ -1040,7 +1040,7 @@ def draw_card(room: dict, player: dict) -> None:
     dk = "shared_deck"
     dc = "shared_discard"
     if len(room[dk]) < 4 and room[dc]:
-        room[dk] = list(room[dc])
+        room[dk].extend(room[dc])
         random.shuffle(room[dk])
         room[dc] = []
     if room[dk]:
