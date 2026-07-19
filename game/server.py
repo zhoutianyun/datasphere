@@ -3166,7 +3166,7 @@ ${snapshot.log}${winnerText}`;
 
 
 
-        return `<div class="played-card empty">本轮还没出牌</div>`;
+        return `<div class="played-card empty"></div>`;
 
 
 
