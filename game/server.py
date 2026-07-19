@@ -2185,6 +2185,17 @@ HTML = """<!DOCTYPE html>
 
 .victory-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; animation: fadeIn 0.5s ease; }
 .victory-overlay.show { display: flex; }
+
+.agent-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 9998; justify-content: center; align-items: center; flex-direction: column; }
+.agent-overlay.show { display: flex; }
+.agent-modal { background: #1a1a2e; border: 2px solid #e94560; border-radius: 12px; padding: 24px; max-width: 480px; width: 90%; color: #eee; }
+.agent-modal h3 { color: #e94560; margin: 0 0 12px 0; font-size: 18px; }
+.agent-modal pre { background: #16213e; padding: 12px; border-radius: 8px; font-size: 13px; overflow-x: auto; margin: 8px 0; }
+.agent-modal .url-box { background: #16213e; padding: 8px 12px; border-radius: 6px; font-family: monospace; font-size: 14px; word-break: break-all; border: 1px solid #333; margin: 8px 0; }
+.agent-modal .close-btn { background: #e94560; color: #fff; border: none; border-radius: 6px; padding: 8px 20px; cursor: pointer; margin-top: 12px; font-size: 14px; }
+.agent-modal .close-btn:hover { background: #c73650; }
+.agent-modal p { margin: 6px 0; line-height: 1.5; }
+.agent-modal .tip { color: #aaa; font-size: 12px; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .victory-content { text-align: center; color: #f4efe5; padding: 30px; position: relative; z-index: 1; }
 .victory-trophy { font-size: 80px; animation: bounce 1s ease infinite; }
@@ -2407,6 +2418,15 @@ section { padding: 0; margin: 0; }
 
           <button class="primary" id="aiBtn" style="flex:1">人机对打</button>
 
+
+
+        </div>
+
+
+        <div class="row">
+
+
+          <button class="primary" id="agentBtn" style="flex:1;background:#e94560">Agent 接入</button>
 
 
         </div>
@@ -4130,6 +4150,19 @@ ${snapshot.log}${winnerText}`;
       showJoin();
 
 
+document.getElementById("agentBtn").addEventListener("click", function() {
+    var overlay = document.getElementById("agentOverlay");
+    if (!overlay) return;
+    var urlBox = document.getElementById("agentEndpointUrl");
+    if (urlBox) urlBox.textContent = window.location.origin + "/api/agent/info";
+    overlay.classList.add("show");
+});
+
+function closeAgentModal() {
+    var overlay = document.getElementById("agentOverlay");
+    if (overlay) overlay.classList.remove("show");
+}
+
 
     }
 
@@ -4258,6 +4291,24 @@ function startConfetti() {
 </div>
 </div>
 </body>
+
+<div id="agentOverlay" class="agent-overlay">
+<div class="agent-modal">
+<button onclick="closeAgentModal()" style="float:right;background:none;border:none;color:#e94560;font-size:20px;cursor:pointer">&times;</button>
+<h3>🤖 Agent 接入</h3>
+<p>AI Agent 可通过以下接口连接游戏：</p>
+<div class="url-box" id="agentEndpointUrl">加载中...</div>
+<p><strong>接口说明：</strong></p>
+<pre>GET  /api/agent/info        - 获取连接信息
+GET  /api/agent/state?room=X  - 获取房间状态
+POST /api/agent/play          - 执行出牌操作</pre>
+<p>使用示例：</p>
+<pre>curl -s "/api/agent/info"
+curl -s "/api/agent/state?room=ROOM1"</pre>
+<p class="tip">💡 用于 AI Agent、MCP 服务端等外部程序接入游戏。</p>
+<button class="close-btn" onclick="closeAgentModal()">关闭</button>
+</div>
+</div>
 
 
 
@@ -7638,7 +7689,6 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/api/state":
 
 
-
             qs = parse_qs(parsed.query)
 
 
@@ -7691,6 +7741,16 @@ class Handler(BaseHTTPRequestHandler):
 
 
 
+
+        if parsed.path == "/api/agent/info":
+
+            data = {"server": "三机对抗卡牌游戏", "version": "1.0", "endpoints": ["/api/agent/info", "/api/agent/state"], "note": "通过 ?room=房间号&player=玩家ID 参数获取游戏状态"}
+
+            json_response(self, 200, data)
+
+            return
+
+
         error(self, "未找到页面", 404)
 
 
@@ -7728,6 +7788,9 @@ class Handler(BaseHTTPRequestHandler):
 
 
             return
+
+
+
 
 
 
