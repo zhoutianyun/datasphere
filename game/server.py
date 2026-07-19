@@ -304,32 +304,6 @@ HTML = """<!DOCTYPE html>
       margin-bottom: 12px;
       white-space: pre-line;
     }
-    .ddz-layout {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 12px 16px;
-      min-height: 600px;
-    }
-    .ddz-top-row {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-    }
-    .ddz-center {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-height: 120px;
-    }
-    .ddz-hand-area {
-      margin-top: auto;
-      padding-top: 8px;
-      border-top: 1px solid rgba(255,255,255,0.06);
-    }
-
     .table {
       display: grid;
       gap: 18px;
@@ -541,81 +515,6 @@ HTML = """<!DOCTYPE html>
     }
     .winner { color: var(--green); font-weight: 700; }
     .warn { color: var(--gold); font-weight: 700; }
-
-    /* Dou Di Zhu style - compact opponent display */
-    .opponent-mini {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px;
-      background: rgba(13, 17, 23, 0.3);
-      min-height: auto !important;
-    }
-    .opponent-mini .info {
-      min-width: 70px;
-    }
-    .opponent-mini .info .name {
-      font-weight: 700;
-      font-size: 13px;
-      color: var(--gold);
-    }
-    .opponent-mini .info .score {
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .opponent-mini .opponent-hand {
-      flex: 0;
-      min-height: auto;
-    }
-    .opponent-mini .back-card {
-      width: 36px;
-      height: 50px;
-    }
-    .ddz-played-area {
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 20px;
-      padding: 12px;
-      background: rgba(7, 11, 16, 0.25);
-      min-height: 80px;
-      text-align: center;
-    }
-    .ddz-played-area .title {
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-    .ddz-played-row {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .ddz-played-card {
-      width: 90px;
-      min-height: 60px;
-      border-radius: 12px;
-      border: 1px solid rgba(224,177,90,0.2);
-      background: rgba(16,20,26,0.6);
-      padding: 8px;
-      text-align: center;
-      font-size: 12px;
-    }
-    .ddz-played-card .card-name { font-size: 14px; margin-bottom: 2px; }
-    .ddz-played-card .card-text { font-size: 10px; }
-    .ddz-played-card .who { font-size: 10px; color: var(--gold); margin-bottom: 4px; }
-    /* Full stats for current player */
-    .player.me .stats { display: flex; flex-wrap: wrap; }
-    .player.me .stats .badge { font-size: 13px; padding: 6px 10px; }
-    .player.me .hand .card { width: 140px; min-height: 190px; }
-    /* Own hand at bottom */
-    .player.me { margin-top: 8px; }
-    /* Sidebar compact */
-    .side .desc { font-size: 13px; }
-    .side .mini { padding: 8px 10px; }
-    .side .mini strong { font-size: 11px; }
-
     @media (max-width: 980px) {
       .app { grid-template-columns: 1fr; }
       .side { position: static; }
@@ -882,6 +781,100 @@ ${snapshot.log}${winnerText}`;
       return Array.from({ length: count }, () => `<div class="back-card" aria-hidden="true"></div>`).join("");
     }
 
+    function renderGame(snapshot) {
+      joinView.classList.add("hidden");
+      lobbyView.classList.add("hidden");
+      gameView.classList.remove("hidden");
+      setSide(snapshot);
+      const table = document.getElementById("table");
+      table.innerHTML = "";
+      const meIndex = snapshot.players.findIndex((p) => p.id === appState.playerId);
+      const seatOrder = meIndex === -1
+        ? snapshot.players
+        : [
+            snapshot.players[(meIndex + 1) % snapshot.players.length],
+            snapshot.players[(meIndex + 2) % snapshot.players.length],
+            snapshot.players[meIndex]
+          ];
+      const seatClasses = ["top-left", "top-right", "bottom"];
+
+      seatOrder.forEach((player, index) => {
+        const isMe = player.id === appState.playerId;
+        const isCurrent = snapshot.current_player_id === player.id;
+        const handHtml = player.hand.map((card, handIndex) => {
+          const def = cardDefs[card];
+          const disabled = !isMe || !isCurrent || snapshot.status !== "playing";
+          return `
+            <button class="card" data-index="${handIndex}" ${disabled ? "disabled" : ""}>
+              <div>
+                <div class="card-top">
+                  <span class="rank">${def.rank}</span>
+                  <span class="suit">${def.suit}</span>
+                </div>
+                <div class="card-name">${def.name}</div>
+                <div class="card-text">${def.desc}</div>
+              </div>
+              <div class="card-foot">${def.foot}</div>
+            </button>
+          `;
+        }).join("");
+
+        const visibleHand = isMe
+          ? handHtml
+          : `<div class="opponent-hand">${renderOpponentBacks(player.hand_count)}</div>`;
+
+        const section = document.createElement("section");
+        section.className = `player ${isMe ? "me" : "opponent"} ${seatClasses[index] || ""}`;
+        section.innerHTML = `
+          <div class="player-head">
+            <h3>${player.name}${isMe ? "（你）" : ""}${player.is_ai ? "（AI）" : ""}</h3>
+            <span>${isCurrent ? "当前出牌者" : ""}</span>
+          </div>
+          <div class="stats">
+            <div class="badge">分数：${player.score}</div>
+            <div class="badge">线索：${player.clues}</div>
+            <div class="badge">钥匙：${player.keys}</div>
+            <div class="badge">护盾：${player.shield}</div>
+            <div class="badge">手牌：${player.hand_count}</div>
+            <div class="badge">坐位：${player.is_host ? "房主" : (player.is_ai ? "AI" : "玩家")}</div>
+          </div>
+          <div class="played-row">
+            ${renderPublicCard(player.last_played)}
+          </div>
+          <div class="hand">${visibleHand}</div>
+        `;
+        table.appendChild(section);
+      });
+
+      const center = document.createElement("section");
+      center.className = "center-stage";
+      center.innerHTML = seatOrder.map((player) => `
+        <div class="center-slot">
+          <strong>${player.name} 的出牌区</strong>
+          ${renderPublicCard(player.last_played)}
+        </div>
+      `).join("");
+      table.appendChild(center);
+
+      const mySection = table.querySelector(".player.me");
+      if (mySection) {
+        mySection.querySelectorAll(".card").forEach((button) => {
+          button.addEventListener("click", () => playCard(Number(button.dataset.index)));
+        });
+      }
+
+      const turnName = snapshot.players.find((p) => p.id === snapshot.current_player_id)?.name || "未知";
+      const winnerText = snapshot.winner_name ? `\
+胜者：${snapshot.winner_name}` : "";
+      logText.className = snapshot.status === "finished" ? "winner" : (snapshot.status.startsWith("choosing") ? "warn" : "");
+      logText.textContent = `房间：${snapshot.room_code}\
+剩余牌库：手牌 4 张 | 牌库 ∞\
+当前出牌者：${turnName}\
+\
+${snapshot.log}${winnerText}`;
+
+      renderChoice(snapshot);
+    }
 
     function renderChoice(snapshot) {
       const box = document.getElementById("choiceBox");
