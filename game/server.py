@@ -1934,7 +1934,7 @@ HTML = """<!DOCTYPE html>
 
 
 
-    .played-card.empty {
+    .played-card.empty { display: none !important;
 
 
 
@@ -2221,10 +2221,10 @@ section { padding: 0; margin: 0; }
 .hand { gap: 3px !important; }
 .opponent-hand { min-height: 0 !important; height: 22px; overflow: hidden; }
 .back-card { width: 14px !important; height: 20px !important; border-radius: 3px !important; font-size: 6px; }
-.center-stage { min-height: 0 !important; padding: 2px 6px !important; border-radius: 8px !important; max-height: 36px; overflow: hidden; }
-.played-card { max-width: 55px !important; min-height: 0 !important; padding: 1px 4px !important; border-radius: 4px !important; }
+.center-stage { min-height: 60px !important; padding: 6px 12px !important; border-radius: 12px !important; background: rgba(255,255,255,0.06) !important; max-height: none !important; overflow: visible; }
+.played-card { max-width: 100px !important; min-height: 45px !important; padding: 4px 10px !important; border-radius: 8px !important; }
 .played-card .card-name { font-size: 9px !important; margin-bottom: 0 !important; }
-.played-card .card-text { font-size: 8px !important; display: none; }
+.played-card .card-name { font-size: 11px !important; margin-bottom: 2px !important; } .played-card .card-text { font-size: 10px !important; display: block !important; }
 .played-card .card-foot { font-size: 7px !important; }
 .center-slot strong { font-size: 9px !important; }
 .card { width: 65px !important; min-height: 80px !important; padding: 3px !important; border-radius: 6px !important; }
@@ -2232,7 +2232,7 @@ section { padding: 0; margin: 0; }
 .card-name { font-size: 8px !important; }
 .card-text { font-size: 7px !important; display: none; }
 .card-foot { font-size: 8px !important; }
-.player.bottom .card { width: 80px !important; min-height: 85px !important; }
+.player.bottom { font-size: 78%; } .player.bottom .card { width: 62px !important; min-height: 65px !important; } .player.bottom .card-name { font-size: 7px !important; } .player.bottom .card-text { font-size: 7px !important; } .player.bottom .card-top { font-size: 9px !important; } .player.bottom .badge { font-size: 8px !important; padding: 1px 3px !important; } .player.bottom .player-head h3 { font-size: 10px !important; }
 .player.bottom .card-text { display: block; font-size: 8px !important; }
 .ghost { margin-top: 1px !important; padding: 1px 4px !important; font-size: 8px !important; }
 </style>
