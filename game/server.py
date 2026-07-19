@@ -898,6 +898,8 @@ ${snapshot.log}${winnerText}`;
     }
 
     async function refreshState() {
+      if (appState._busy) return;
+      appState._busy = true;
       if (!appState.roomCode || !appState.playerId) {
         showJoin();
         return;
@@ -1002,7 +1004,7 @@ ${snapshot.log}${winnerText}`;
     document.getElementById("leaveBtn").addEventListener("click", leaveRoom);
     document.getElementById("leaveBtn2").addEventListener("click", leaveRoom);
 
-    setInterval(refreshState, 1000);
+    setInterval(refreshState, 500);
     refreshState();
   </script>
 </body>
