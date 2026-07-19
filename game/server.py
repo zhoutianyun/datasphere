@@ -14,8 +14,8 @@ from urllib.parse import parse_qs, urlparse
 
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
-MAX_TURNS = 18
-MAX_SCORE = 3
+MAX_TURNS = 0
+MAX_SCORE = 5
 ROOM_SIZE = 3
 
 CARD_DEFS = {
@@ -98,8 +98,8 @@ DECK_POOL = [
     "wild",
     "wild",
 ]
-DECK_SIZE = 12
-HAND_SIZE = 5
+DECK_SIZE = 40
+HAND_SIZE = 4
 
 ROOMS: dict[str, dict] = {}
 LOCK = threading.Lock()
@@ -608,7 +608,10 @@ HTML = """<!DOCTYPE html>
       lobbyView.classList.remove("hidden");
       gameView.classList.add("hidden");
       const players = snapshot.players.map((p) => p.name).join("、");
-      lobbyStatus.textContent = `房间 ${snapshot.room_code}\\n当前玩家：${players}\\n${snapshot.players.length}/3 人\\n满 3 人后自动开始`;
+      lobbyStatus.textContent = `房间 ${snapshot.room_code}\
+当前玩家：${players}\
+${snapshot.players.length}/3 人\
+满 3 人后自动开始`;
       setSide(snapshot);
     }
 
@@ -669,9 +672,14 @@ HTML = """<!DOCTYPE html>
       }
 
       const turnName = snapshot.players.find((p) => p.id === snapshot.current_player_id)?.name || "未知";
-      const winnerText = snapshot.winner_name ? `\\n胜者：${snapshot.winner_name}` : "";
+      const winnerText = snapshot.winner_name ? `\
+胜者：${snapshot.winner_name}` : "";
       logText.className = snapshot.status === "finished" ? "winner" : (snapshot.status.startsWith("choosing") ? "warn" : "");
-      logText.textContent = `房间：${snapshot.room_code}\\n剩余总回合：${snapshot.turns_left} / ${snapshot.max_turns}\\n当前出牌者：${turnName}\\n\\n${snapshot.log}${winnerText}`;
+      logText.textContent = `房间：${snapshot.room_code}\
+剩余牌库：手牌 4 张 | 牌库 ∞\
+当前出牌者：${turnName}\
+\
+${snapshot.log}${winnerText}`;
 
       renderChoice(snapshot);
     }
@@ -783,9 +791,14 @@ HTML = """<!DOCTYPE html>
       }
 
       const turnName = snapshot.players.find((p) => p.id === snapshot.current_player_id)?.name || "未知";
-      const winnerText = snapshot.winner_name ? `\\n胜者：${snapshot.winner_name}` : "";
+      const winnerText = snapshot.winner_name ? `\
+胜者：${snapshot.winner_name}` : "";
       logText.className = snapshot.status === "finished" ? "winner" : (snapshot.status.startsWith("choosing") ? "warn" : "");
-      logText.textContent = `房间：${snapshot.room_code}\\n剩余总回合：${snapshot.turns_left} / ${snapshot.max_turns}\\n当前出牌者：${turnName}\\n\\n${snapshot.log}${winnerText}`;
+      logText.textContent = `房间：${snapshot.room_code}\
+剩余牌库：手牌 4 张 | 牌库 ∞\
+当前出牌者：${turnName}\
+\
+${snapshot.log}${winnerText}`;
 
       renderChoice(snapshot);
     }
@@ -961,6 +974,10 @@ def shuffled_deck() -> list[str]:
 
 
 def draw_card(player: dict) -> None:
+    if len(player["deck"]) < 4 and player["discard"]:
+        player["deck"] = list(player["discard"])
+        random.shuffle(player["deck"])
+        player["discard"] = []
     if player["deck"]:
         player["hand"].append(player["deck"].pop(0))
 
@@ -977,6 +994,7 @@ def make_player(name: str, is_host: bool = False) -> dict:
         "shield": 0,
         "deck": [],
         "hand": [],
+        "discard": [],
         "last_played": None,
     }
 
@@ -989,6 +1007,7 @@ def reset_players_for_game(players: list[dict]) -> None:
         player["shield"] = 0
         player["deck"] = shuffled_deck()
         player["hand"] = []
+        player["discard"] = []
         player["last_played"] = None
         for _ in range(HAND_SIZE):
             draw_card(player)
@@ -1030,7 +1049,7 @@ def serialize_room(room: dict, viewer_id: str) -> dict:
         "room_code": room["code"],
         "status": room["status"],
         "turns_left": room["turns_left"],
-        "max_turns": MAX_TURNS,
+        "max_turns": 0,
         "players": players,
         "current_player_id": room["current_player_id"],
         "log": room["log"],
@@ -1071,6 +1090,7 @@ def absorb_shield(player: dict) -> bool:
 
 def record_played_card(player: dict, card: str) -> None:
     player["last_played"] = card
+    player["discard"].append(card)
 
 
 def finish_if_needed(room: dict) -> None:
@@ -1312,7 +1332,7 @@ def create_ai_game(name: str) -> tuple[str, str]:
         "code": code,
         "players": players,
         "status": "playing",
-        "turns_left": MAX_TURNS,
+        "turns_left": 0,
         "current_player_id": human["id"],
         "log": "人机对战开始。轮到你先出牌。",
         "pending_choice": None,
@@ -1328,7 +1348,7 @@ def create_room(name: str) -> tuple[str, str]:
         "code": code,
         "players": [host],
         "status": "waiting",
-        "turns_left": MAX_TURNS,
+        "turns_left": 0,
         "current_player_id": host["id"],
         "log": "房间已创建，等待另外两位玩家加入。",
         "pending_choice": None,
@@ -1351,7 +1371,7 @@ def join_room(code: str, name: str) -> str:
     if len(room["players"]) == ROOM_SIZE:
         reset_players_for_game(room["players"])
         room["status"] = "playing"
-        room["turns_left"] = MAX_TURNS
+        room["turns_left"] = 0
         room["current_player_id"] = room["players"][0]["id"]
         room["winner_id"] = None
         room["pending_choice"] = None
@@ -1372,7 +1392,7 @@ def start_game(code: str, player_id: str) -> None:
         raise ValueError("需要 3 位玩家才能开始")
     reset_players_for_game(room["players"])
     room["status"] = "playing"
-    room["turns_left"] = MAX_TURNS
+    room["turns_left"] = 0
     room["current_player_id"] = room["players"][0]["id"]
     room["winner_id"] = None
     room["pending_choice"] = None
@@ -1402,7 +1422,6 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
 
     card = player["hand"].pop(hand_index)
     record_played_card(player, card)
-    room["turns_left"] = max(0, room["turns_left"] - 1)
 
     if card == "investigate":
         player["clues"] += 1
