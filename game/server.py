@@ -4057,6 +4057,18 @@ ${snapshot.log}${winnerText}`;
 
 
 
+    async function skipTurn() {
+      try {
+        await api("/api/skip_turn", "POST", {
+          room_code: appState.roomCode,
+          player_id: appState.playerId
+        });
+        refreshState();
+      } catch (error) {
+        logText.textContent = error.message;
+      }
+    }
+
     function leaveRoom() {
 
 
@@ -6808,69 +6820,11 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
 
 
     if card == "recycle":
-
-
-
-        # Take 1 random non-recycle card from shared discard
-
-
-
-        recycled = None
-
-
-
-        for i in range(len(room["shared_discard"]) - 1, -1, -1):
-
-
-
-            if room["shared_discard"][i] != "recycle":
-
-
-
-                recycled = room["shared_discard"].pop(i)
-
-
-
-                break
-
-
-
-        if recycled:
-
-
-
-            player["hand"].append(recycled)
-
-
-
-            room["log"] = f"{player['name']} 打出【回收牌】，从弃牌堆回收了 1 张牌。"
-
-
-
-        else:
-
-
-
-            room["log"] = f"{player['name']} 打出【回收牌】，但弃牌堆没有可回收的牌。"
-
-
-
+        draw_card(room, player)
+        room["log"] = f"{player['name']} ʹ�����ջ��ƣ��ӿ���� 1 ���ơ�"
         next_player(room)
-
-
-
         finish_if_needed(room)
-
-
-
         return
-
-
-
-
-
-
-
     if card == "freeze":
 
 
