@@ -657,7 +657,7 @@ ${snapshot.players.length}/3 人\
             <div class="badge">分数：${player.score}</div>
             <div class="badge">线索：${player.clues}</div>
             <div class="badge">钥匙：${player.keys}</div>
-            <div class="badge">牌库：${player.deck_count}</div>
+            <div class="badge">坐位：${player.is_host ? "房主" : (player.is_ai ? "AI" : "玩家")}</div>
           </div>
           <div class="hand">${hiddenHand}</div>
         `;
@@ -763,7 +763,7 @@ ${snapshot.log}${winnerText}`;
             <div class="badge">钥匙：${player.keys}</div>
             <div class="badge">护盾：${player.shield}</div>
             <div class="badge">手牌：${player.hand_count}</div>
-            <div class="badge">牌库：${player.deck_count}</div>
+            <div class="badge">坐位：${player.is_host ? "房主" : (player.is_ai ? "AI" : "玩家")}</div>
           </div>
           <div class="played-row">
             ${renderPublicCard(player.last_played)}
@@ -973,13 +973,15 @@ def shuffled_deck() -> list[str]:
     return deck[:DECK_SIZE]
 
 
-def draw_card(player: dict) -> None:
-    if len(player["deck"]) < 4 and player["discard"]:
-        player["deck"] = list(player["discard"])
-        random.shuffle(player["deck"])
-        player["discard"] = []
-    if player["deck"]:
-        player["hand"].append(player["deck"].pop(0))
+def draw_card(room: dict, player: dict) -> None:
+    dk = "shared_deck"
+    dc = "shared_discard"
+    if len(room[dk]) < 4 and room[dc]:
+        room[dk] = list(room[dc])
+        random.shuffle(room[dk])
+        room[dc] = []
+    if room[dk]:
+        player["hand"].append(room[dk].pop(0))
 
 
 def make_player(name: str, is_host: bool = False) -> dict:
@@ -992,25 +994,23 @@ def make_player(name: str, is_host: bool = False) -> dict:
         "clues": 0,
         "keys": 0,
         "shield": 0,
-        "deck": [],
         "hand": [],
-        "discard": [],
         "last_played": None,
     }
 
 
-def reset_players_for_game(players: list[dict]) -> None:
+def reset_players_for_game(room: dict, players: list[dict]) -> None:
+    room["shared_deck"] = shuffled_deck()
+    room["shared_discard"] = []
     for player in players:
         player["score"] = 0
         player["clues"] = 0
         player["keys"] = 0
         player["shield"] = 0
-        player["deck"] = shuffled_deck()
         player["hand"] = []
-        player["discard"] = []
         player["last_played"] = None
         for _ in range(HAND_SIZE):
-            draw_card(player)
+            draw_card(room, player)
 
 
 def serialize_room(room: dict, viewer_id: str) -> dict:
@@ -1024,7 +1024,7 @@ def serialize_room(room: dict, viewer_id: str) -> dict:
                 "clues": player["clues"],
                 "keys": player["keys"],
                 "shield": player["shield"],
-                "deck_count": len(player["deck"]),
+                "deck_count": len(room.get("shared_deck", [])),
                 "hand_count": len(player["hand"]),
                 "hand": list(player["hand"]) if player["id"] == viewer_id else [],
                 "last_played": player["last_played"],
@@ -1054,6 +1054,8 @@ def serialize_room(room: dict, viewer_id: str) -> dict:
         "current_player_id": room["current_player_id"],
         "log": room["log"],
         "pending_choice": pending_choice,
+        "shared_deck_size": len(room.get("shared_deck", [])),
+        "shared_discard_size": len(room.get("shared_discard", [])),
         "winner_name": player_name(room, room["winner_id"]) if room["winner_id"] else "",
         "is_host": bool(viewer and viewer["is_host"]),
     }
@@ -1088,9 +1090,9 @@ def absorb_shield(player: dict) -> bool:
     return False
 
 
-def record_played_card(player: dict, card: str) -> None:
+def record_played_card(room: dict, player: dict, card: str) -> None:
     player["last_played"] = card
-    player["discard"].append(card)
+    room["shared_discard"].append(card)
 
 
 def finish_if_needed(room: dict) -> None:
@@ -1327,7 +1329,6 @@ def create_ai_game(name: str) -> tuple[str, str]:
     ai_2 = make_player("AI 对手 2")
     ai_2["is_ai"] = True
     players = [human, ai_1, ai_2]
-    reset_players_for_game(players)
     room = {
         "code": code,
         "players": players,
@@ -1338,6 +1339,7 @@ def create_ai_game(name: str) -> tuple[str, str]:
         "pending_choice": None,
         "winner_id": None,
     }
+    reset_players_for_game(room, players)
     ROOMS[code] = room
     return code, human["id"]
 
@@ -1369,7 +1371,7 @@ def join_room(code: str, name: str) -> str:
     player = make_player(name)
     room["players"].append(player)
     if len(room["players"]) == ROOM_SIZE:
-        reset_players_for_game(room["players"])
+        reset_players_for_game(room, room["players"])
         room["status"] = "playing"
         room["turns_left"] = 0
         room["current_player_id"] = room["players"][0]["id"]
@@ -1390,7 +1392,7 @@ def start_game(code: str, player_id: str) -> None:
         raise ValueError("只有房主可以开始游戏")
     if len(room["players"]) != ROOM_SIZE:
         raise ValueError("需要 3 位玩家才能开始")
-    reset_players_for_game(room["players"])
+    reset_players_for_game(room, room["players"])
     room["status"] = "playing"
     room["turns_left"] = 0
     room["current_player_id"] = room["players"][0]["id"]
@@ -1421,11 +1423,11 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
         raise ValueError("手牌索引无效")
 
     card = player["hand"].pop(hand_index)
-    record_played_card(player, card)
+    record_played_card(room, player, card)
 
     if card == "investigate":
         player["clues"] += 1
-        draw_card(player)
+        draw_card(room, player)
         room["log"] = f"{player['name']} 打出【调查牌】，获得 1 条线索。"
         next_player(room)
         finish_if_needed(room)
@@ -1433,7 +1435,7 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
 
     if card == "double_investigate":
         player["clues"] += 2
-        draw_card(player)
+        draw_card(room, player)
         room["log"] = f"{player['name']} 打出【深度调查】，直接获得 2 条线索。"
         next_player(room)
         finish_if_needed(room)
@@ -1441,7 +1443,7 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
 
     if card == "key":
         player["keys"] += 1
-        draw_card(player)
+        draw_card(room, player)
         room["log"] = f"{player['name']} 打出【钥匙牌】，获得 1 把钥匙。"
         next_player(room)
         finish_if_needed(room)
@@ -1449,7 +1451,7 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
 
     if card == "shield":
         player["shield"] += 1
-        draw_card(player)
+        draw_card(room, player)
         room["log"] = f"{player['name']} 打出【防护牌】，获得 1 层护盾。"
         next_player(room)
         finish_if_needed(room)
@@ -1463,7 +1465,7 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
             room["log"] = f"{player['name']} 打出【开箱牌】并成功开箱，获得 1 分。"
         else:
             room["log"] = f"{player['name']} 打出【开箱牌】，但资源不足，开箱失败。"
-        draw_card(player)
+        draw_card(room, player)
         next_player(room)
         finish_if_needed(room)
         return
@@ -1480,7 +1482,7 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
         else:
             player["keys"] += 1
             room["log"] = f"{player['name']} 打出【万用牌】，当前最缺钥匙，因此获得 1 把钥匙。"
-        draw_card(player)
+        draw_card(room, player)
         next_player(room)
         finish_if_needed(room)
         return
@@ -1489,14 +1491,14 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
         opponents = [p for p in room["players"] if p["id"] != player_id]
         max_clues = max(p["clues"] for p in opponents)
         if max_clues <= 0:
-            draw_card(player)
+            draw_card(room, player)
             room["log"] = f"{player['name']} 打出【干扰牌】，但没有可削减线索的目标。"
             next_player(room)
             finish_if_needed(room)
             return
 
         targets = [p for p in opponents if p["clues"] == max_clues]
-        draw_card(player)
+        draw_card(room, player)
         if len(targets) == 1:
             if absorb_shield(targets[0]):
                 room["log"] = f"{player['name']} 打出【干扰牌】，但 {targets[0]['name']} 的护盾抵消了这次影响。"
@@ -1521,14 +1523,14 @@ def play_card(code: str, player_id: str, hand_index: int) -> None:
         opponents = [p for p in room["players"] if p["id"] != player_id]
         max_keys = max(p["keys"] for p in opponents)
         if max_keys <= 0:
-            draw_card(player)
+            draw_card(room, player)
             room["log"] = f"{player['name']} 打出【顺手牵钥】，但没有对手持有钥匙，本次抢夺落空。"
             next_player(room)
             finish_if_needed(room)
             return
 
         targets = [p for p in opponents if p["keys"] == max_keys]
-        draw_card(player)
+        draw_card(room, player)
         if len(targets) == 1:
             if absorb_shield(targets[0]):
                 room["log"] = f"{player['name']} 打出【顺手牵钥】，但 {targets[0]['name']} 的护盾抵消了这次抢夺。"
