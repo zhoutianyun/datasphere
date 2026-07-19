@@ -4157,13 +4157,21 @@ document.getElementById("agentBtn").addEventListener("click", function() {
     if (urlBox) urlBox.textContent = window.location.origin + "/api/agent/info";
     if (appState.pollTimer) clearInterval(appState.pollTimer);
     overlay.classList.add("show");
+    var closeBtns = overlay.querySelectorAll(".agent-close-btn");
+    for (var ci = 0; ci < closeBtns.length; ci++) {
+        closeBtns[ci].addEventListener("click", function() {
+            overlay.classList.remove("show");
+            if (appState.pollTimer) appState.pollTimer = setInterval(refreshState, 1000);
+        });
+    }
+    overlay.addEventListener("click", function(e) {
+        if (e.target === this) {
+            overlay.classList.remove("show");
+            if (appState.pollTimer) appState.pollTimer = setInterval(refreshState, 1000);
+        }
+    });
 });
 
-function closeAgentModal() {
-    var overlay = document.getElementById("agentOverlay");
-    if (overlay) overlay.classList.remove("show");
-    if (appState.pollTimer) appState.pollTimer = setInterval(refreshState, 1000);
-}
 
 
     }
@@ -4292,11 +4300,9 @@ function startConfetti() {
 <button class="victory-btn" onclick="location.reload()">再来一局</button>
 </div>
 </div>
-</body>
-
 <div id="agentOverlay" class="agent-overlay">
 <div class="agent-modal">
-<button onclick="closeAgentModal()" style="float:right;background:none;border:none;color:#e94560;font-size:20px;cursor:pointer">&times;</button>
+<button class="agent-close-btn" style="float:right;background:none;border:none;color:#e94560;font-size:20px;cursor:pointer">&times;</button>
 <h3>🤖 Agent 接入</h3>
 <p>AI Agent 可通过以下接口连接游戏：</p>
 <div class="url-box" id="agentEndpointUrl">加载中...</div>
@@ -4308,9 +4314,11 @@ POST /api/agent/play          - 执行出牌操作</pre>
 <pre>curl -s "/api/agent/info"
 curl -s "/api/agent/state?room=ROOM1"</pre>
 <p class="tip">💡 用于 AI Agent、MCP 服务端等外部程序接入游戏。</p>
-<button class="close-btn" onclick="closeAgentModal()">关闭</button>
+<button class="close-btn agent-close-btn">关闭</button>
 </div>
 </div>
+</body>
+
 
 
 
