@@ -304,7 +304,10 @@ HTML = """<!DOCTYPE html>
       margin-bottom: 12px;
       white-space: pre-line;
     }
-    .ddz-layout { display:flex; flex-direction:column; gap:8px;
+    .ddz-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       padding: 12px 16px;
       min-height: 600px;
     }
@@ -541,41 +544,34 @@ HTML = """<!DOCTYPE html>
 
     /* Dou Di Zhu style - compact opponent display */
     .opponent-mini {
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 8px;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 10px;
-      background: rgba(13, 17, 23, 0.15);
+      gap: 10px;
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      background: rgba(13, 17, 23, 0.3);
       min-height: auto !important;
     }
     .opponent-mini .info {
-      display: flex;
-      gap: 6px;
-      align-items: baseline;
-      min-width: auto;
+      min-width: 70px;
     }
     .opponent-mini .info .name {
-      font-weight: 600;
-      font-size: 11px;
+      font-weight: 700;
+      font-size: 13px;
       color: var(--gold);
-      white-space: nowrap;
     }
     .opponent-mini .info .score {
-      font-size: 10px;
+      font-size: 12px;
       color: var(--muted);
-      white-space: nowrap;
     }
     .opponent-mini .opponent-hand {
       flex: 0;
       min-height: auto;
-      display: flex;
-      gap: 3px;
     }
     .opponent-mini .back-card {
-      width: 22px;
-      height: 32px;
+      width: 36px;
+      height: 50px;
     }
     .ddz-played-area {
       border: 1px solid rgba(255,255,255,0.08);
