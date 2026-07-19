@@ -2199,6 +2199,42 @@ HTML = """<!DOCTYPE html>
 .victory-btn { margin-top: 20px; padding: 14px 40px; font-size: 18px; font-weight: 600; background: linear-gradient(135deg, #ffd700, #e0b15a); color: #0f1116; border: none; border-radius: 8px; cursor: pointer; transition: transform 0.2s; }
 .victory-btn:hover { transform: scale(1.05); }
 #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10000; }
+
+/* ===== RESPONSIVE LAYOUT: fit in viewport without scrolling ===== */
+html, body { height: 100%; overflow: hidden !important; margin: 0; }
+.app { height: 100vh !important; max-height: 100vh; min-height: 0 !important; overflow: hidden !important; padding: 2px 4px !important; }
+main { padding: 0 !important; margin: 0 !important; overflow: hidden; display: flex; flex-direction: column; }
+section { padding: 0; margin: 0; }
+#gameView:not(.hidden) { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.table, #table { flex: 1; min-height: 0 !important; height: auto !important; gap: 2px !important; padding: 2px 4px !important; overflow: hidden !important; }
+.complementary { padding: 1px 6px !important; max-height: 24px; overflow: hidden; font-size: 9px; }
+.complementary p { display: none !important; }
+.complementary h1 { font-size: 11px !important; margin: 0 !important; }
+.complementary strong, .complementary .generic { font-size: 9px !important; }
+.player { padding: 3px 6px !important; border-radius: 8px !important; }
+.player.opponent { min-height: 0 !important; max-height: 80px; overflow: hidden; }
+.player-head { gap: 2px !important; margin-bottom: 1px !important; }
+.player-head h3 { font-size: 11px !important; margin: 0; line-height: 1.2; }
+.player-head span { font-size: 9px !important; }
+.stats { gap: 2px !important; margin-bottom: 1px !important; }
+.badge { padding: 1px 4px !important; font-size: 9px !important; border-radius: 4px !important; }
+.hand { gap: 3px !important; }
+.opponent-hand { min-height: 0 !important; height: 22px; overflow: hidden; }
+.back-card { width: 14px !important; height: 20px !important; border-radius: 3px !important; font-size: 6px; }
+.center-stage { min-height: 0 !important; padding: 2px 6px !important; border-radius: 8px !important; max-height: 36px; overflow: hidden; }
+.played-card { max-width: 55px !important; min-height: 0 !important; padding: 1px 4px !important; border-radius: 4px !important; }
+.played-card .card-name { font-size: 9px !important; margin-bottom: 0 !important; }
+.played-card .card-text { font-size: 8px !important; display: none; }
+.played-card .card-foot { font-size: 7px !important; }
+.center-slot strong { font-size: 9px !important; }
+.card { width: 65px !important; min-height: 80px !important; padding: 3px !important; border-radius: 6px !important; }
+.card-top { font-size: 10px !important; }
+.card-name { font-size: 8px !important; }
+.card-text { font-size: 7px !important; display: none; }
+.card-foot { font-size: 8px !important; }
+.player.bottom .card { width: 80px !important; min-height: 85px !important; }
+.player.bottom .card-text { display: block; font-size: 8px !important; }
+.ghost { margin-top: 1px !important; padding: 1px 4px !important; font-size: 8px !important; }
 </style>
 
 
