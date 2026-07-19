@@ -1,5 +1,6 @@
-﻿游戏文件/__pycache__/
+﻿game/__pycache__/
 *.pyc
 __pycache__/
 .DS_Store
 .env
+

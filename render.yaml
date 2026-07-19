@@ -1,9 +1,10 @@
-services:
+﻿services:
   - type: web
     name: three-agent-card-room
     runtime: python
-    rootDir: 游戏文件
+    rootDir: 娓告垙鏂囦欢
     buildCommand: ""
     startCommand: python server.py
     plan: free
     autoDeploy: true
+
